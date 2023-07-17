@@ -38,6 +38,7 @@ class GUIPractice:
             
             try:
                 self.filename = fd.askopenfilename()
+                self.filename_bar.delete("1.0", "end")
                 self.filename_bar.insert("1.0", self.filename)
             
                 load_dict = {
@@ -51,7 +52,6 @@ class GUIPractice:
 
             except ImportError:
                 self.status_label.config(text = "Dependency error detected, please make sure all dependencies were installed correctly", fg = "red")
-
             except: 
                 if (hasattr(self, "loaded_data")):
                     pass                    
@@ -95,7 +95,7 @@ class GUIPractice:
         self.window.mainloop()
 
 if __name__ == "__main__":
-    with open("C:/Users/User/Desktop/GUIPractice/config/GUIPractice_config.json", "r") as f:
+    with open(r"C:\Users\USER\Desktop\Python_Projects\Projects\TkinterGUIs\config\GUIPractice_config.json", "r") as f:
         config_dict = json.load(f)
 
     gp = GUIPractice(**config_dict["GUIPractice"]["constructor"])
