@@ -31,8 +31,8 @@ class GUIPractice:
 
             return label_object
         
-        def create_text_bar(text_bar_height: int, grid_column: int, grid_row: int, relative_x: float, relative_y: float, bar_width: float = None) -> tk.Text:
-            text_bar = tk.Text(self.window, height = text_bar_height)
+        def create_text_bar(text_bar_height: int, grid_column: int, grid_row: int, relative_x: float, relative_y: float, bar_width: float = None, state: str = "disabled") -> tk.Text:
+            text_bar = tk.Text(self.window, height = text_bar_height, state = state)
             text_bar.grid(column = grid_column, row = grid_row, sticky = "nsew")
             text_bar.place(relx = relative_x, rely = relative_y)
 
@@ -108,36 +108,24 @@ class GUIPractice:
         self.window.geometry(self.window_geometry)
         self.window.resizable(0, 0)
 
-        self.filename_bar  = create_text_bar(1, 0, 0, 0.05, 0.0970)
-        self.min_text_bar  = create_text_bar(1, 0, 0, 0.7, 0.25, 140)        
-        self.percentile_25 = create_text_bar(1, 0, 0, 0.7, 0.35, 140)
-        self.percentile_50 = create_text_bar(1, 0, 0, 0.7, 0.45, 140)
-        self.percentile_75 = create_text_bar(1, 0, 0, 0.7, 0.55, 140)
-        self.max_text_bar  = create_text_bar(1, 0, 0, 0.7, 0.65, 140)
-        self.mean_text_bar = create_text_bar(1, 0, 0, 0.83, 0.25, 140)
-        self.stdev_bar     = create_text_bar(1, 0, 0, 0.83, 0.35, 140)
-        self.count_bar     = create_text_bar(1, 0, 0, 0.83, 0.45, 140)
-        self.mode_bar      = create_text_bar(1, 0, 0, 0.83, 0.55, 140)
-        self.chart_window  = create_text_bar(30, 5, 5, 0.05, 0.25, 340)
-        self.data_window   = create_text_bar(30, 5, 5, 0.35, 0.25, 340)
+        self.filename_bar    = create_text_bar(1, 0, 0, 0.05, 0.0970, state = "normal")
+        self.mean_text_bar   = create_text_bar(1, 0, 0, 0.65, 0.25, 140)
+        self.median_text_bar = create_text_bar(1, 0, 0, 0.65, 0.35, 140)
+        self.mode_bar        = create_text_bar(1, 0, 0, 0.65, 0.45, 140)
+        self.chart_window    = create_text_bar(40, 6, 6, 0.05, 0.25, 400)
+        self.data_window     = create_text_bar(40, 6, 6, 0.35, 0.25, 400)
 
         self.status_label = create_label(" ", 0.15, 0.05)
         create_label("Load CSV file", 0.05, 0.05)
         create_label("Data Preview", 0.05, 0.15)
         create_label("Variable Chart", 0.35, 0.15)
-        create_label("Descriptive Statistics (numeric columns only)", 0.7, 0.15)
-        create_label("Min", 0.7, 0.2)
-        create_label("25th Percentile", 0.7, 0.3)
-        create_label("50th Percentile", 0.7, 0.4)
-        create_label("75th Percentile", 0.7, 0.5)
-        create_label("Max", 0.7, 0.6)
-        create_label("Mean", 0.83, 0.2)
-        create_label("Standard Deviation", 0.83, 0.3)
-        create_label("Count", 0.83, 0.4)
-        create_label("Mode", 0.83, 0.5)
-        create_button("Load File", load_file, 0.63, 0.09)
-        create_button("Save File", save_file, 0.73, 0.09)
-        create_button("Reset", reset_function, 0.83, 0.09)
+        create_label("Descriptive Statistics (for numeric columns)", 0.65, 0.15)
+        create_label("Median", 0.65, 0.2)
+        create_label("Mode", 0.65, 0.3)
+        create_label("Mode", 0.65, 0.4)
+        create_button("Load File", load_file, 0.46, 0.09)
+        create_button("Save File", save_file, 0.54, 0.09)
+        create_button("Reset", reset_function, 0.62, 0.09)
 
         self.window.mainloop()
 
