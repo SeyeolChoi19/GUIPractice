@@ -42,13 +42,7 @@ class GUIPractice:
             return text_bar
         
         def reset_function():
-            objects_list = [
-                self.filename_bar, self.mean_text_bar, self.min_text_bar, 
-                self.percentile_25, self.percentile_50, self.percentile_75, 
-                self.max_text_bar, self.stdev_bar, self.count_bar, 
-                self.chart_window, self.data_window
-            ]
-
+            objects_list = [self.filename_bar, self.mean_text_bar, self.chart_window, self.data_window]
             self.status_label.config(text = " ")
 
             if (hasattr(self, "loaded_data")):
@@ -80,11 +74,13 @@ class GUIPractice:
 
             except ImportError:
                 self.status_label.config(text = "Dependency error detected, please make sure all dependencies were installed correctly", fg = "red")
-            except: 
+            except FileNotFoundError:
+                self.status_label.config(text = "File not found, please make sure the correct file was selected", fg = "red")
+            except KeyError: 
                 if (hasattr(self, "loaded_data")):
                     pass                    
                 else:
-                    self.status_label.config(text = "File not found, please make sure the correct file was selected", fg = "red")
+                    self.status_label.config(text = "Only csv, xlsx and json files allowed", fg = "red")
                     self.filename_bar.delete("1.0", "end")
                 
         def save_file():
@@ -120,9 +116,11 @@ class GUIPractice:
         create_label("Data Preview", 0.05, 0.15)
         create_label("Variable Chart", 0.35, 0.15)
         create_label("Descriptive Statistics (for numeric columns)", 0.65, 0.15)
-        create_label("Median", 0.65, 0.2)
-        create_label("Mode", 0.65, 0.3)
+        create_label("Mean", 0.65, 0.2)
+        create_label("Median", 0.65, 0.3)
         create_label("Mode", 0.65, 0.4)
+        create_label("Variable Filters", 0.65, 0.6)
+
         create_button("Load File", load_file, 0.46, 0.09)
         create_button("Save File", save_file, 0.54, 0.09)
         create_button("Reset", reset_function, 0.62, 0.09)
@@ -136,3 +134,5 @@ if __name__ == "__main__":
     gp = GUIPractice(**config_dict["GUIPractice"]["constructor"])
     gp.settings_method(**config_dict["GUIPractice"]["settings_method"])
     gp.create_initial_state()
+
+    
