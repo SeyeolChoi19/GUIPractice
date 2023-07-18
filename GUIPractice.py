@@ -6,16 +6,12 @@ import pandas  as pd
 from tkinter import ttk 
 from tkinter import filedialog as fd 
 
-# https://www.geeksforgeeks.org/how-to-change-the-tkinter-label-font-size/
-# https://www.geeksforgeeks.org/resizable-method-in-tkinter-python/
-# https://www.pythontutorial.net/tkinter/tkinter-open-file-dialog/
-
 class GUIPractice:
     def __init__(self, window_message: str, font_type: str = "Calibri"):
         self.window_message = window_message 
         self.font_type      = font_type 
 
-    def settings_method(self, file_types: dict, window_width: int, window_height: int, font_size: int = 12):
+    def settings_method(self, file_types: dict, window_width: int = 1200, window_height: int = 800, font_size: int = 12):
         self.file_types_dict   = file_types 
         self.target_file_types = ((key, value) for (key, value) in self.file_types_dict.items())
         self.window_width      = window_width 
@@ -28,6 +24,38 @@ class GUIPractice:
             open_file_button = ttk.Button(self.window, text = button_text, command = button_function)
             open_file_button.grid(column = 0, row = 1, sticky = "w", padx = 10, pady = 10)
             open_file_button.place(relx = relative_x, rely = relative_y)
+
+        def create_label(label_text: str, relative_x: float, relative_y: float) -> tk.Label:
+            label_object = tk.Label(text = label_text, font = (self.font_type, self.font_size, "bold"))
+            label_object.place(relx = relative_x, rely = relative_y)
+
+            return label_object
+        
+        def create_text_bar(text_bar_height: int, grid_column: int, grid_row: int, relative_x: float, relative_y: float, bar_width: float = None) -> tk.Text:
+            text_bar = tk.Text(self.window, height = text_bar_height)
+            text_bar.grid(column = grid_column, row = grid_row, sticky = "nsew")
+            text_bar.place(relx = relative_x, rely = relative_y)
+
+            if (bar_width != None):
+                text_bar.place(width = bar_width)
+
+            return text_bar
+        
+        def reset_function():
+            objects_list = [
+                self.filename_bar, self.mean_text_bar, self.min_text_bar, 
+                self.percentile_25, self.percentile_50, self.percentile_75, 
+                self.max_text_bar, self.stdev_bar, self.count_bar, 
+                self.chart_window, self.data_window
+            ]
+
+            self.status_label.config(text = " ")
+
+            if (hasattr(self, "loaded_data")):
+                del self.loaded_data
+
+            for object in objects_list: 
+                object.delete("1.0", "end")
 
         def load_file():
             def json_loader(filename: str):
@@ -46,7 +74,7 @@ class GUIPractice:
                     "xlsx" : pd.read_excel,
                     "json" : json_loader
                 }
-
+    
                 self.loaded_data = load_dict[self.filename.lower().split(".")[-1]](self.filename)
                 self.status_label.config(text = "File Loaded", fg = "blue")
 
@@ -80,22 +108,41 @@ class GUIPractice:
         self.window.geometry(self.window_geometry)
         self.window.resizable(0, 0)
 
-        self.label_object = tk.Label(text = "Load CSV file", font = (self.font_type, self.font_size, "bold"))
-        self.status_label = tk.Label(text = " ", font = (self.font_type, self.font_size, "bold"))
-        self.filename_bar = tk.Text(self.window, height = 1)
-        
-        self.label_object.place(relx = 0.05, rely = 0.05)
-        self.status_label.place(relx = 0.15, rely = 0.05)
-        self.filename_bar.grid(column = 0, row = 0, sticky = "nsew")
-        self.filename_bar.place(relx = 0.05, rely = 0.0970)
-        
+        self.filename_bar  = create_text_bar(1, 0, 0, 0.05, 0.0970)
+        self.min_text_bar  = create_text_bar(1, 0, 0, 0.7, 0.25, 140)        
+        self.percentile_25 = create_text_bar(1, 0, 0, 0.7, 0.35, 140)
+        self.percentile_50 = create_text_bar(1, 0, 0, 0.7, 0.45, 140)
+        self.percentile_75 = create_text_bar(1, 0, 0, 0.7, 0.55, 140)
+        self.max_text_bar  = create_text_bar(1, 0, 0, 0.7, 0.65, 140)
+        self.mean_text_bar = create_text_bar(1, 0, 0, 0.83, 0.25, 140)
+        self.stdev_bar     = create_text_bar(1, 0, 0, 0.83, 0.35, 140)
+        self.count_bar     = create_text_bar(1, 0, 0, 0.83, 0.45, 140)
+        self.mode_bar      = create_text_bar(1, 0, 0, 0.83, 0.55, 140)
+        self.chart_window  = create_text_bar(30, 5, 5, 0.05, 0.25, 340)
+        self.data_window   = create_text_bar(30, 5, 5, 0.35, 0.25, 340)
+
+        self.status_label = create_label(" ", 0.15, 0.05)
+        create_label("Load CSV file", 0.05, 0.05)
+        create_label("Data Preview", 0.05, 0.15)
+        create_label("Variable Chart", 0.35, 0.15)
+        create_label("Descriptive Statistics (numeric columns only)", 0.7, 0.15)
+        create_label("Min", 0.7, 0.2)
+        create_label("25th Percentile", 0.7, 0.3)
+        create_label("50th Percentile", 0.7, 0.4)
+        create_label("75th Percentile", 0.7, 0.5)
+        create_label("Max", 0.7, 0.6)
+        create_label("Mean", 0.83, 0.2)
+        create_label("Standard Deviation", 0.83, 0.3)
+        create_label("Count", 0.83, 0.4)
+        create_label("Mode", 0.83, 0.5)
         create_button("Load File", load_file, 0.63, 0.09)
         create_button("Save File", save_file, 0.73, 0.09)
+        create_button("Reset", reset_function, 0.83, 0.09)
 
         self.window.mainloop()
 
 if __name__ == "__main__":
-    with open(r"C:\Users\USER\Desktop\Python_Projects\Projects\TkinterGUIs\config\GUIPractice_config.json", "r") as f:
+    with open(r"C:/Users/User/Desktop/GUIPractice/config/GUIPractice_config.json", "r") as f:
         config_dict = json.load(f)
 
     gp = GUIPractice(**config_dict["GUIPractice"]["constructor"])
