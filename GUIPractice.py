@@ -8,8 +8,8 @@ from tkinter import filedialog as fd
 
 class GUIPractice:
     def __init__(self, window_message: str, font_type: str = "Calibri"):
-        self.window_message = window_message 
-        self.font_type      = font_type 
+        self.window_message  = window_message 
+        self.font_type       = font_type 
 
     def settings_method(self, file_types: dict, window_width: int = 1200, window_height: int = 800, font_size: int = 12):
         self.file_types_dict   = file_types 
@@ -20,6 +20,18 @@ class GUIPractice:
         self.font_size         = font_size 
 
     def create_initial_state(self):
+        def create_combobox(relative_x: float, relative_y: float) -> ttk.Combobox:
+            selected_week = tk.StringVar()            
+            keep_value    = selected_week.get()
+            week_combobox = ttk.Combobox(self.window, textvariable = keep_value)
+
+            week_combobox["values"] = ["-"]
+            week_combobox["state"]  = "readonly"
+            week_combobox.current(0)
+            week_combobox.place(relx = relative_x, rely = relative_y)
+
+            return week_combobox
+
         def create_button(button_text: str, button_function, relative_x: float, relative_y: float):
             open_file_button = ttk.Button(self.window, text = button_text, command = button_function)
             open_file_button.grid(column = 0, row = 1, sticky = "w", padx = 10, pady = 10)
@@ -47,6 +59,10 @@ class GUIPractice:
 
             if (hasattr(self, "loaded_data")):
                 del self.loaded_data
+                self.data_preview_box["values"]   = ["-"]
+                self.variable_chart_box["values"] = ["-"]
+                self.data_preview_box.current(0)
+                self.variable_chart_box.current(0)
 
             for object in objects_list: 
                 object.delete("1.0", "end")
@@ -71,7 +87,11 @@ class GUIPractice:
     
                 self.loaded_data = load_dict[self.filename.lower().split(".")[-1]](self.filename)
                 self.status_label.config(text = "File Loaded", fg = "blue")
-
+                self.data_preview_box["values"]   = ["Select a variable", "All"] + list(self.loaded_data.columns)
+                self.variable_chart_box["values"] = ["Select a variable", "All"] + list(self.loaded_data.columns)
+                self.data_preview_box.current(0)
+                self.variable_chart_box.current(0)
+                
             except ImportError:
                 self.status_label.config(text = "Dependency error detected, please make sure all dependencies were installed correctly", fg = "red")
             except FileNotFoundError:
@@ -125,6 +145,9 @@ class GUIPractice:
         create_button("Save File", save_file, 0.54, 0.09)
         create_button("Reset", reset_function, 0.62, 0.09)
 
+        self.data_preview_box   = create_combobox(0.05, 0.2)
+        self.variable_chart_box = create_combobox(0.35, 0.2)
+
         self.window.mainloop()
 
 if __name__ == "__main__":
@@ -134,5 +157,3 @@ if __name__ == "__main__":
     gp = GUIPractice(**config_dict["GUIPractice"]["constructor"])
     gp.settings_method(**config_dict["GUIPractice"]["settings_method"])
     gp.create_initial_state()
-
-    
