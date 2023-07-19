@@ -152,7 +152,7 @@ class GUIPractice:
         create_button("Load File", load_file, 0.46, 0.09)
         create_button("Save File", save_file, 0.54, 0.09)
         create_button("Reset", reset_function, 0.62, 0.09)
-
+        
         self.data_preview_box      = create_combobox(0.05, 0.2)
         self.variable_chart_box    = create_combobox(0.35, 0.2)
         self.descriptive_stats_box = create_combobox(0.65, 0.2)
@@ -167,24 +167,24 @@ if __name__ == "__main__":
     gp.settings_method(**config_dict["GUIPractice"]["settings_method"])
     gp.create_initial_state()
 
-    gp.data_preview_value.get()
-    gp.data_preview_box.get()
+    
+    
 
-import tkinter as tk
-from tkinter import ttk
+# import tkinter as tk
+# from tkinter import ttk
 
-def get_selected_value():
-    selected_value = combobox.get()
-    print(selected_value)
+# def get_selected_value():
+#     selected_value = combobox.get()
+#     print(selected_value)
 
-root = tk.Tk()
+# root = tk.Tk()
 
-# Create a Combobox
-combobox = ttk.Combobox(root, values=['Option 1', 'Option 2', 'Option 3'])
-combobox.pack()
+# # Create a Combobox
+# combobox = ttk.Combobox(root, values=['Option 1', 'Option 2', 'Option 3'])
+# combobox.pack()
 
-# Create a button to get the selected value
-button = tk.Button(root, text="Get Selected Value", command=get_selected_value)
-button.pack()
+# # Create a button to get the selected value
+# button = tk.Button(root, text="Get Selected Value", command=get_selected_value)
+# button.pack()
 
-root.mainloop()    
+# root.mainloop()    
