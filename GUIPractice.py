@@ -19,9 +19,13 @@ class GUIPractice:
         self.window_geometry   = f"{self.window_width}x{self.window_height}"
         self.font_size         = font_size 
         self.data_dictionary   = {}
+        self.combobox_dict     = {}
 
     def create_initial_state(self):
-        def create_combobox(relative_x: float, relative_y: float) -> ttk.Combobox:
+        def create_combobox(relative_x: float, relative_y: float, combobox_designator: str) -> ttk.Combobox:
+            def combobox_trigger(event):
+                self.combobox_dict[combobox_designator] = vars_combobox.get()
+
             selected_value = tk.StringVar()            
             keep_value     = selected_value.get()
             vars_combobox  = ttk.Combobox(self.window, textvariable = keep_value)
@@ -30,6 +34,7 @@ class GUIPractice:
             vars_combobox["state"]  = "readonly"
             vars_combobox.current(0)
             vars_combobox.place(relx = relative_x, rely = relative_y)
+            vars_combobox.bind("<<ComboboxSelected>>", combobox_trigger)
 
             return vars_combobox
 
@@ -57,7 +62,7 @@ class GUIPractice:
 
             return text_bar
         
-        def reset_function():
+        def reset_function(filler: None):
             objects_list = [self.filename_bar, self.mean_text_bar, self.chart_window, self.data_window]
             self.status_label.config(text = " ")
 
@@ -90,19 +95,19 @@ class GUIPractice:
                     "json" : json_loader
                 }
     
-                loaded_data = load_dict[self.filename.lower().split(".")[-1]](self.filename)
+                self.loaded_data = load_dict[self.filename.lower().split(".")[-1]](self.filename)
 
-                self.data_dictionary[f"Data_{str(file_number).zfill(2)}"] = loaded_data
-                self.status_label.config(text = "File Loaded", fg = "blue")
-                # self.data_preview_box["values"]   = ["Select a variable"] + list(self.loaded_data.columns)
-                # self.variable_chart_box["values"] = ["Select a variable"] + list(self.loaded_data.columns)
+                self.data_dictionary[f"Data_{str(file_number).zfill(2)}"] = self.loaded_data
+                self.status_label.config(text = f"File {file_number} Loaded", fg = "blue")
+                self.data_preview_box["values"]   = ["Select a variable"] + list(self.loaded_data.columns)
+                self.variable_chart_box["values"] = ["Select a variable"] + list(self.loaded_data.columns)
                 self.data_preview_box.current(0)
                 self.variable_chart_box.current(0)
                 
                 descriptive_stats_list = ["-"]
 
-                # if (self.loaded_data.select_dtypes(include = ["int64", "float64"]).shape[1] != 0):
-                #     descriptive_stats_list = ["Select a variable"] + [i for i in self.loaded_data.select_dtypes(include = ["float64", "int64"]).columns]
+                if (self.loaded_data.select_dtypes(include = ["int64", "float64"]).shape[1] != 0):
+                    descriptive_stats_list = ["Select a variable"] + [i for i in self.loaded_data.select_dtypes(include = ["float64", "int64"]).columns]
 
                 self.descriptive_stats_box["values"] = descriptive_stats_list
                 self.descriptive_stats_box.current(0)
@@ -118,7 +123,7 @@ class GUIPractice:
                     self.status_label.config(text = "Only csv, xlsx and json files allowed", fg = "red")
                     self.filename_bar.delete("1.0", "end")
                 
-        def save_file():
+        def save_file(filler_func: None):
             try:
                 save_data_object = self.loaded_data if type(self.loaded_data) == dict else json.loads(self.loaded_data.to_json())
                 save_data_name   = fd.asksaveasfilename(initialfile = "Untitled.json", defaultextension = ".json", filetypes = [("JSON file", "*.json")])
@@ -161,9 +166,9 @@ class GUIPractice:
         create_button("Save File", save_file, 0.62, 0.09)
         create_button("Reset", reset_function, 0.70, 0.09)
         
-        self.data_preview_box      = create_combobox(0.05, 0.2)
-        self.variable_chart_box    = create_combobox(0.35, 0.2)
-        self.descriptive_stats_box = create_combobox(0.65, 0.2)
+        self.data_preview_box      = create_combobox(0.05, 0.2, "data_preview")
+        self.variable_chart_box    = create_combobox(0.35, 0.2, "variable_chart")
+        self.descriptive_stats_box = create_combobox(0.65, 0.2, "descriptive_stats")
 
         self.window.mainloop()
 
@@ -174,5 +179,3 @@ if __name__ == "__main__":
     gp = GUIPractice(**config_dict["GUIPractice"]["constructor"])
     gp.settings_method(**config_dict["GUIPractice"]["settings_method"])
     gp.create_initial_state()
-
-    
