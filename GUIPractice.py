@@ -18,6 +18,7 @@ class GUIPractice:
         self.window_height     = window_height 
         self.window_geometry   = f"{self.window_width}x{self.window_height}"
         self.font_size         = font_size 
+        self.data_dictionary   = {}
 
     def create_initial_state(self):
         def create_combobox(relative_x: float, relative_y: float) -> ttk.Combobox:
@@ -32,8 +33,11 @@ class GUIPractice:
 
             return vars_combobox
 
-        def create_button(button_text: str, button_function, relative_x: float, relative_y: float):
-            open_file_button = ttk.Button(self.window, text = button_text, command = button_function)
+        def create_button(button_text: str, button_function, relative_x: float, relative_y: float, button_number: int = None):
+            def button_click():
+                button_function(button_number)
+            
+            open_file_button = ttk.Button(self.window, text = button_text, command = button_click)
             open_file_button.grid(column = 0, row = 1, sticky = "w", padx = 10, pady = 10)
             open_file_button.place(relx = relative_x, rely = relative_y)
 
@@ -61,13 +65,14 @@ class GUIPractice:
                 object.delete("1.0", "end")
 
             if (hasattr(self, "loaded_data")):
-                del self.loaded_data
+                del self.data_dictionary
+                self.data_dictionary = {}
 
                 for drop_box in [self.data_preview_box, self.variable_chart_box, self.descriptive_stats_box]:
                     drop_box["values"] = ["-"]
                     drop_box.current(0)
 
-        def load_file():
+        def load_file(file_number):
             def json_loader(filename: str):
                 with open(filename, "r") as f:
                     json_datafile = pd.DataFrame(json.load(f))
@@ -85,17 +90,19 @@ class GUIPractice:
                     "json" : json_loader
                 }
     
-                self.loaded_data = load_dict[self.filename.lower().split(".")[-1]](self.filename)
+                loaded_data = load_dict[self.filename.lower().split(".")[-1]](self.filename)
+
+                self.data_dictionary[f"Data_{str(file_number).zfill(2)}"] = loaded_data
                 self.status_label.config(text = "File Loaded", fg = "blue")
-                self.data_preview_box["values"]   = ["Select a variable"] + list(self.loaded_data.columns)
-                self.variable_chart_box["values"] = ["Select a variable"] + list(self.loaded_data.columns)
+                # self.data_preview_box["values"]   = ["Select a variable"] + list(self.loaded_data.columns)
+                # self.variable_chart_box["values"] = ["Select a variable"] + list(self.loaded_data.columns)
                 self.data_preview_box.current(0)
                 self.variable_chart_box.current(0)
                 
                 descriptive_stats_list = ["-"]
 
-                if (self.loaded_data.select_dtypes(include = ["int64", "float64"]).shape[1] != 0):
-                    descriptive_stats_list = ["Select a variable"] + [i for i in self.loaded_data.select_dtypes(include = ["float64", "int64"]).columns]
+                # if (self.loaded_data.select_dtypes(include = ["int64", "float64"]).shape[1] != 0):
+                #     descriptive_stats_list = ["Select a variable"] + [i for i in self.loaded_data.select_dtypes(include = ["float64", "int64"]).columns]
 
                 self.descriptive_stats_box["values"] = descriptive_stats_list
                 self.descriptive_stats_box.current(0)
@@ -149,9 +156,10 @@ class GUIPractice:
         create_label("Mode", 0.65, 0.45)
         create_label("Variable Filters", 0.65, 0.6)
 
-        create_button("Load File", load_file, 0.46, 0.09)
-        create_button("Save File", save_file, 0.54, 0.09)
-        create_button("Reset", reset_function, 0.62, 0.09)
+        create_button("Load File 1", load_file, 0.46, 0.09, 1)
+        create_button("Load File 2", load_file, 0.54, 0.09, 2)
+        create_button("Save File", save_file, 0.62, 0.09)
+        create_button("Reset", reset_function, 0.70, 0.09)
         
         self.data_preview_box      = create_combobox(0.05, 0.2)
         self.variable_chart_box    = create_combobox(0.35, 0.2)
@@ -168,23 +176,3 @@ if __name__ == "__main__":
     gp.create_initial_state()
 
     
-    
-
-# import tkinter as tk
-# from tkinter import ttk
-
-# def get_selected_value():
-#     selected_value = combobox.get()
-#     print(selected_value)
-
-# root = tk.Tk()
-
-# # Create a Combobox
-# combobox = ttk.Combobox(root, values=['Option 1', 'Option 2', 'Option 3'])
-# combobox.pack()
-
-# # Create a button to get the selected value
-# button = tk.Button(root, text="Get Selected Value", command=get_selected_value)
-# button.pack()
-
-# root.mainloop()    
