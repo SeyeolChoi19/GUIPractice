@@ -181,3 +181,22 @@ if __name__ == "__main__":
     gp.create_initial_state()
 
     
+{
+    "GUIPractice": {
+        "constructor": {
+            "window_message": "Test GUI Window",
+            "font_type": "Calibri"
+        },
+        "settings_method": {
+            "file_types": {
+                "text files": "*.txt",
+                "JSON files": "*.json",
+                "csv files": "*.csv",
+                "xlsx files": "*.xlsx"
+            },
+            "window_width": 1500,
+            "window_height": 760,
+            "font_size": 12
+        }
+    }
+}
