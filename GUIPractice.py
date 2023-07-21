@@ -69,13 +69,13 @@ class GUIPractice:
             for object in objects_list: 
                 object.delete("1.0", "end")
 
-            if (hasattr(self, "loaded_data")):
-                del self.data_dictionary
-                self.data_dictionary = {}
+            # if (hasattr(self, "loaded_data")):
+            #     del self.data_dictionary
+            #     self.data_dictionary = {}
 
-                for drop_box in [self.data_preview_box, self.variable_chart_box, self.descriptive_stats_box]:
-                    drop_box["values"] = ["-"]
-                    drop_box.current(0)
+            #     for drop_box in [self.data_preview_box, self.variable_chart_box, self.descriptive_stats_box]:
+            #         drop_box["values"] = ["-"]
+            #         drop_box.current(0)
 
         def load_file(file_number):
             def json_loader(filename: str):
@@ -94,24 +94,19 @@ class GUIPractice:
                     "xlsx" : pd.read_excel,
                     "json" : json_loader
                 }
-    
-                self.loaded_data = load_dict[self.filename.lower().split(".")[-1]](self.filename)
 
-                self.data_dictionary[f"Data_{str(file_number).zfill(2)}"] = self.loaded_data
-                self.status_label.config(text = f"File {file_number} Loaded", fg = "blue")
-                self.data_preview_box["values"]   = ["Select a variable"] + list(self.loaded_data.columns)
-                self.variable_chart_box["values"] = ["Select a variable"] + list(self.loaded_data.columns)
-                self.data_preview_box.current(0)
-                self.variable_chart_box.current(0)
-                
                 descriptive_stats_list = ["-"]
 
-                if (self.loaded_data.select_dtypes(include = ["int64", "float64"]).shape[1] != 0):
-                    descriptive_stats_list = ["Select a variable"] + [i for i in self.loaded_data.select_dtypes(include = ["float64", "int64"]).columns]
-
-                self.descriptive_stats_box["values"] = descriptive_stats_list
-                self.descriptive_stats_box.current(0)
+                self.loaded_data = load_dict[self.filename.lower().split(".")[-1]](self.filename)
+                self.data_dictionary[f"Data_{str(file_number).zfill(2)}"] = self.loaded_data
+                self.status_label.config(text = f"File {file_number} Loaded", fg = "blue")
                 
+                if (("Data_01" in self.data_dictionary) and ("Data_02" in self.data_dictionary)):
+                    self.join_type_box["values"]   = ["Select a join type"] + ["left", "right", "inner", "outer"]
+                    self.join_column_box["values"] = ["Select primary key"] + [i for i in self.data_dictionary["Data_01"].columns if i in self.data_dictionary["Data_02"].columns]
+                    self.join_type_box.current(0)
+                    self.join_column_box.current(0)
+
             except ImportError:
                 self.status_label.config(text = "Dependency error detected, please make sure all dependencies were installed correctly", fg = "red")
             except FileNotFoundError:
@@ -144,15 +139,35 @@ class GUIPractice:
                 self.merged_data = pd.merge(
                     self.data_dictionary["Data_01"], 
                     self.data_dictionary["Data_02"], 
-                    on = self.combobox_dict["join_variable"], 
+                    on  = self.combobox_dict["join_variable"], 
                     how = self.combobox_dict["join_type"]
                 )
 
                 self.status_label.config(text = "Datasets merged", fg = "blue")
-
+                self.select_filter_variable["values"]  = ["Select a variable", "All"] + list(self.merged_data.columns)
+                self.select_filter_operation["values"] = ["Select an operation"] + ["Greater than or equal", "Greater than", "Lesser than", "Lesser than or equal", "Equals", "Does not equal"]
+                self.filter_value_text_box.insert("1.0", "Input filter values")
+                self.select_filter_variable.current(0)
+                self.select_filter_operation.current(0)
+                                
             except AttributeError:
-                    self.status_label.config(text = "Inputs required for merge operation are missing, please ensure that datasets are loaded and the options for the merge operation are specified correctly", fg = "red")
-                                        
+                self.status_label.config(text = "Inputs required for merge operation are missing, please ensure that datasets are loaded and the options for the merge operation are specified correctly", fg = "red")
+
+        def apply_transformation(event):
+            filter_value = float(self.filter_value_text_box.get()) if (self.combobox_dict["filter_variable"] in self.merged_data.select_dtypes(include = "object").columns) else self.filter_value_text_box.get()
+
+            temporary_data = {
+                "Greater than or equal" : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] >= filter_value],
+                "Greater than"          : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] >  filter_value],
+                "Lesser than or equal"  : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] <= filter_value],
+                "Lesser than"           : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] <  filter_value],
+                "Equals"                : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] == filter_value],
+                "Does not equal"        : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] != filter_value]
+            }
+
+            self.merged_data = temporary_data[self.combobox_dict["filter_operation"]]
+            self.status_label.config(text = "Filters applied")                
+                                       
         self.window = tk.Tk()
         self.window.title(self.window_message)
         self.window.geometry(self.window_geometry)
@@ -171,29 +186,28 @@ class GUIPractice:
         create_button("Load File 2", load_file, 0.54, 0.09, 2)
         create_button("Reset", reset_function, 0.62, 0.09)
         
-        create_label("6. Data Preview", 0.35, 0.15)
-        create_label("7. Variable Chart", 0.65, 0.15)
-
         create_label("2. Merge Datasets", 0.05, 0.15)
-        self.join_dataset_vars_box = create_combobox(0.05, 0.2, "join_dataset")
-        self.join_type_box         = create_combobox(0.15, 0.2, "join_type")
-        self.join_column_box       = create_combobox(0.25, 0.2, "join_variable")
         create_button("Merge Datasets", merge_data, 0.05, 0.25, button_width = 57)
-
+        self.join_type_box         = create_combobox(0.05, 0.2, "join_type")
+        self.join_column_box       = create_combobox(0.15, 0.2, "join_variable")
+        
         create_label("3. Data Transformation", 0.05, 0.30)    
+        create_button("Apply Transformation", apply_transformation, 0.05, 0.4, button_width = 57)
         self.select_filter_variable  = create_combobox(0.05, 0.35, "filter_variable")
         self.select_filter_operation = create_combobox(0.15, 0.35, "filter_operation")
-        self.select_drop_null_yn     = create_combobox(0.25, 0.35, "filter_null_values")
-        create_button("Apply Transformation", merge_data, 0.05, 0.4, button_width = 57)
-
-        create_label("4. Save Data", 0.05, 0.45)
-        self.final_variable_selection = create_text_bar(1, 0, 0, 0.05, 0.5, 408, state = "normal")
-        create_button("Save Dataset", save_file, 0.05, 0.55, button_width = 57)
+        self.filter_value_text_box   = create_text_bar(1, 0, 0, 0.25, 0.35, 106, state = "normal")
         
-        create_label("5. Descriptive Statistics (for numeric columns)", 0.05, 0.6)
-        create_label("Mean", 0.05, 0.65)
-        create_label("Median", 0.05, 0.75)
-        create_label("Mode", 0.05, 0.85)
+        # create_label("4. Save Data", 0.05, 0.45)
+        # self.final_variable_selection = create_text_bar(1, 0, 0, 0.05, 0.5, 408, state = "normal")
+        # create_button("Save Dataset", save_file, 0.05, 0.55, button_width = 57)
+        
+        # create_label("5. Descriptive Statistics (for numeric columns)", 0.05, 0.6)
+        # create_label("Mean", 0.05, 0.65)
+        # create_label("Median", 0.05, 0.75)
+        # create_label("Mode", 0.05, 0.85)
+
+        # create_label("6. Data Preview", 0.35, 0.15)
+        # create_label("7. Variable Chart", 0.65, 0.15)
         
         self.window.mainloop()
 
@@ -204,23 +218,3 @@ if __name__ == "__main__":
     gp = GUIPractice(**config_dict["GUIPractice"]["constructor"])
     gp.settings_method(**config_dict["GUIPractice"]["settings_method"])
     gp.create_initial_state()
-
-{
-    "GUIPractice": {
-        "constructor": {
-            "window_message": "Test GUI Window",
-            "font_type": "Calibri"
-        },
-        "settings_method": {
-            "file_types": {
-                "text files": "*.txt",
-                "JSON files": "*.json",
-                "csv files": "*.csv",
-                "xlsx files": "*.xlsx"
-            },
-            "window_width": 1500,
-            "window_height": 760,
-            "font_size": 12
-        }
-    }
-}
