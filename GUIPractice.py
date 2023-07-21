@@ -218,3 +218,4 @@ if __name__ == "__main__":
     gp = GUIPractice(**config_dict["GUIPractice"]["constructor"])
     gp.settings_method(**config_dict["GUIPractice"]["settings_method"])
     gp.create_initial_state()
+ 
