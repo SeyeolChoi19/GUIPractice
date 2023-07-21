@@ -154,7 +154,7 @@ class GUIPractice:
                 self.status_label.config(text = "Inputs required for merge operation are missing, please ensure that datasets are loaded and the options for the merge operation are specified correctly", fg = "red")
 
         def apply_transformation(event):
-            filter_value = float(self.filter_value_text_box.get()) if (self.combobox_dict["filter_variable"] in self.merged_data.select_dtypes(include = "object").columns) else self.filter_value_text_box.get()
+            filter_value = self.filter_value_text_box.get("1.0", "end") if (self.combobox_dict["filter_variable"] in self.merged_data.select_dtypes(include = "object").columns) else float(self.filter_value_text_box.get("1.0", "end"))
 
             temporary_data = {
                 "Greater than or equal" : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] >= filter_value],
