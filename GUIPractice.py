@@ -139,32 +139,6 @@ class GUIPractice:
             except FileNotFoundError:
                 self.status_label.config(text = "Illegal directory, please check if the destination folder was selected correctly", fg = "red")
 
-        self.window = tk.Tk()
-        self.window.title(self.window_message)
-        self.window.geometry(self.window_geometry)
-        self.window.resizable(0, 0)
-
-        self.filename_bar    = create_text_bar(1, 0, 0, 0.05, 0.0970, state = "normal")
-        self.mean_text_bar   = create_text_bar(1, 0, 0, 0.05, 0.7, 140)
-        self.median_text_bar = create_text_bar(1, 0, 0, 0.05, 0.8, 140)
-        self.mode_bar        = create_text_bar(1, 0, 0, 0.05, 0.9, 140)
-        self.chart_window    = create_text_bar(40, 6, 6, 0.35, 0.25, 400)
-        self.data_window     = create_text_bar(40, 6, 6, 0.65, 0.25, 400)
-
-        self.status_label = create_label(" ", 0.15, 0.05)
-        create_label("1. Load CSV file", 0.05, 0.05)
-        create_label("2. Data Transformation", 0.05, 0.15)
-        create_label("3. Descriptive Statistics (for numeric columns)", 0.05, 0.6)
-        create_label("4. Data Preview", 0.35, 0.15)
-        create_label("5. Variable Chart", 0.65, 0.15)
-        create_label("Join Datasets", 0.05, 0.2)
-        create_label("Data Filters", 0.05, 0.3)
-        create_label("Delete Null Values", 0.05, 0.35)
-        create_label("Mean", 0.05, 0.65)
-        create_label("Median", 0.05, 0.75)
-        create_label("Mode", 0.05, 0.85)
-        
-
         def merge_data(event):
             try:
                 self.merged_data = pd.merge(
@@ -178,21 +152,48 @@ class GUIPractice:
 
             except AttributeError:
                     self.status_label.config(text = "Inputs required for merge operation are missing, please ensure that datasets are loaded and the options for the merge operation are specified correctly", fg = "red")
-                        
+                                        
+        self.window = tk.Tk()
+        self.window.title(self.window_message)
+        self.window.geometry(self.window_geometry)
+        self.window.resizable(0, 0)
+
+        self.filename_bar    = create_text_bar(1, 0, 0, 0.05, 0.0970, state = "normal")
+        self.mean_text_bar   = create_text_bar(1, 0, 0, 0.05, 0.7, 408)
+        self.median_text_bar = create_text_bar(1, 0, 0, 0.05, 0.8, 408)
+        self.mode_bar        = create_text_bar(1, 0, 0, 0.05, 0.9, 408)
+        self.chart_window    = create_text_bar(40, 6, 6, 0.35, 0.25, 400)
+        self.data_window     = create_text_bar(40, 6, 6, 0.65, 0.25, 400)
+
+        self.status_label = create_label(" ", 0.15, 0.05)
+        create_label("1. Load CSV file", 0.05, 0.05)
         create_button("Load File 1", load_file, 0.46, 0.09, 1)
         create_button("Load File 2", load_file, 0.54, 0.09, 2)
         create_button("Reset", reset_function, 0.62, 0.09)
-        create_button("Apply Transformation", merge_data, 0.05, 0.4, button_width = 23)
-        create_button("Save File", save_file, 0.188, 0.4, button_width = 23)
-                                    
-        self.join_dataset_vars_box = create_combobox(0.15, 0.2, "join_dataset")
-        self.join_type_box         = create_combobox(0.23, 0.2, "join_type")
-        self.join_column_box       = create_combobox(0.15, 0.25, "join_variable")
-        self.data_filters_box      = create_combobox(0.15, 0.3, "data_filters")
-        self.data_filter_vars      = create_combobox(0.23, 0.3, "data_filters_text")
-        self.delete_nulls_box      = create_combobox(0.15, 0.35, "delete_nulls")
-        self.data_preview_box      = create_combobox(0.35, 0.2, "data_preview")
-        self.variable_chart_box    = create_combobox(0.65, 0.2, "variable_chart")
+        
+        create_label("6. Data Preview", 0.35, 0.15)
+        create_label("7. Variable Chart", 0.65, 0.15)
+
+        create_label("2. Merge Datasets", 0.05, 0.15)
+        self.join_dataset_vars_box = create_combobox(0.05, 0.2, "join_dataset")
+        self.join_type_box         = create_combobox(0.15, 0.2, "join_type")
+        self.join_column_box       = create_combobox(0.25, 0.2, "join_variable")
+        create_button("Merge Datasets", merge_data, 0.05, 0.25, button_width = 57)
+
+        create_label("3. Data Transformation", 0.05, 0.30)    
+        self.select_filter_variable  = create_combobox(0.05, 0.35, "filter_variable")
+        self.select_filter_operation = create_combobox(0.15, 0.35, "filter_operation")
+        self.select_drop_null_yn     = create_combobox(0.25, 0.35, "filter_null_values")
+        create_button("Apply Transformation", merge_data, 0.05, 0.4, button_width = 57)
+
+        create_label("4. Save Data", 0.05, 0.45)
+        self.final_variable_selection = create_text_bar(1, 0, 0, 0.05, 0.5, 408, state = "normal")
+        create_button("Save Dataset", save_file, 0.05, 0.55, button_width = 57)
+        
+        create_label("5. Descriptive Statistics (for numeric columns)", 0.05, 0.6)
+        create_label("Mean", 0.05, 0.65)
+        create_label("Median", 0.05, 0.75)
+        create_label("Mode", 0.05, 0.85)
         
         self.window.mainloop()
 
