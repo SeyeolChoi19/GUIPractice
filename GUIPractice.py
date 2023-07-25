@@ -120,13 +120,22 @@ class GUIPractice:
                 
         def save_file(filler_func = None):
             try:
-                save_data_object = self.merged_data if type(self.merged_data) == dict else json.loads(self.loaded_data.to_json())
+                output_variables = [i.strip() for i in self.final_variable_selection.get("1.0", "end").split(",")]
+                output_data      = self.merged_data.copy()
+                
+                output_data.columns = [col.lower() for col in output_data.columns] 
+                output_data         = output_data[output_variables]
+
+                save_data_object = output_data if type(output_data) == dict else json.loads(output_data.to_json())
                 save_data_name   = fd.asksaveasfilename(initialfile = "Untitled.json", defaultextension = ".json", filetypes = [("JSON file", "*.json")])
 
                 with open(save_data_name, "w") as f:
                     json.dump(save_data_object, f, indent = 4)
 
                 self.status_label.config(text = "File Saved", fg = "blue")
+
+            except KeyError:
+                self.status_label.config(text = "Variable name error detected, please make sure variable names were entered correctly", fg = "red")
 
             except AttributeError:
                 self.status_label.config(text = "Data to be saved not found, please make sure data was loaded correctly", fg = "red")
@@ -144,8 +153,9 @@ class GUIPractice:
                 )
 
                 self.status_label.config(text = "Datasets merged", fg = "blue")
-                self.select_filter_variable["values"]  = ["Select a variable", "All"] + list(self.merged_data.columns)
-                self.select_filter_operation["values"] = ["Select an operation"] + ["Greater than or equal", "Greater than", "Lesser than", "Lesser than or equal", "Equals", "Does not equal", "Drop null values"]
+                self.select_filter_variable["values"]     = ["Select a variable", "All"] + list(self.merged_data.columns)
+                self.select_filter_operation["values"]    = ["Select an operation"] + ["Greater than or equal", "Greater than", "Lesser than", "Lesser than or equal", "Equals", "Does not equal", "Drop null values"]
+                self.select_numerical_variables["values"] = ["Select a variable"] + [i for i in self.merged_data.select_dtypes(include = ["int64", "float64"]).columns]
                 self.filter_value_text_box.insert("1.0", 0)
                 self.select_filter_variable.current(0)
                 self.select_filter_operation.current(0)
@@ -199,9 +209,6 @@ class GUIPractice:
         self.window.resizable(0, 0)
 
         self.filename_bar    = create_text_bar(1, 0, 0, 0.05, 0.0970, state = "normal")
-        self.mean_text_bar   = create_text_bar(1, 0, 0, 0.05, 0.7, 408)
-        self.median_text_bar = create_text_bar(1, 0, 0, 0.05, 0.8, 408)
-        self.mode_bar        = create_text_bar(1, 0, 0, 0.05, 0.9, 408)
         self.chart_window    = create_text_bar(40, 6, 6, 0.35, 0.25, 400)
         self.data_window     = create_text_bar(40, 6, 6, 0.65, 0.25, 400)
 
@@ -222,14 +229,20 @@ class GUIPractice:
         self.select_filter_operation = create_combobox(0.15, 0.35, "filter_operation")
         self.filter_value_text_box   = create_text_bar(1, 0, 0, 0.25, 0.35, 106, state = "normal")
         
-        create_label("4. Save Data: Enter variables to keep in the saved dataset", 0.05, 0.45)
+        create_label("4. Enter variables to save, separate variables with commas", 0.05, 0.45)
         self.final_variable_selection = create_text_bar(1, 0, 0, 0.05, 0.5, 408, state = "normal")
         create_button("Save Dataset", save_file, 0.05, 0.55, button_width = 57)
         
         create_label("5. Descriptive Statistics (for numeric columns)", 0.05, 0.6)
-        create_label("Mean", 0.05, 0.65)
-        create_label("Median", 0.05, 0.75)
-        create_label("Mode", 0.05, 0.85)
+        create_label("Select variables", 0.05, 0.65)
+        create_label("Mean", 0.155, 0.65)
+        create_label("Median", 0.155, 0.75)
+        create_label("Mode", 0.155, 0.85)
+        create_button("Generate stats", save_file, 0.05, 0.75, button_width = 14)
+        self.select_numerical_variables = create_combobox(0.05, 0.7, "descriptive_stats_box")
+        self.mean_text_bar              = create_text_bar(1, 0, 0, 0.155, 0.7, 243)
+        self.median_text_bar            = create_text_bar(1, 0, 0, 0.155, 0.8, 243)
+        self.mode_bar                   = create_text_bar(1, 0, 0, 0.155, 0.9, 243)
 
         create_label("6. Data Preview", 0.35, 0.15)
         create_label("7. Variable Chart", 0.65, 0.15)
@@ -237,7 +250,7 @@ class GUIPractice:
         self.window.mainloop()
 
 if __name__ == "__main__":
-    with open(r"C:\Users\USER\Desktop\Python_Projects\Projects\TkinterGUIs\config\GUIPractice_config.json", "r") as f:
+    with open(r"C:\Users\82102\Python_Projects\GUIPractice\config\GUIPractice_config.json", "r") as f:
         config_dict = json.load(f)
 
     gp = GUIPractice(**config_dict["GUIPractice"]["constructor"])
