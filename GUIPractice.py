@@ -120,7 +120,7 @@ class GUIPractice:
                 
         def save_file(filler_func = None):
             try:
-                output_variables = [i.strip() for i in self.final_variable_selection.get("1.0", "end").split(",")]
+                output_variables = [i.strip() for i in self.final_variable_selection.get("1.0", "end").lower().split(",")]
                 output_data      = self.merged_data.copy()
                 
                 output_data.columns = [col.lower() for col in output_data.columns] 
@@ -204,12 +204,13 @@ class GUIPractice:
             except KeyError:
                 self.status_label.config(text = "Please select a variable for data transformation operations")
 
-        def generate_stats():
+        def generate_stats(event):
             mode_value  = self.merged_data[self.combobox_dict["descriptive_stats_box"]].mode()
-            output_mode = mode_value[0] if (len(mode_value) == 1) else f"{self.combobox_dict['descriptive_stats_box']} does not have a mode"
+            output_mode = mode_value.iloc[0] if (len(mode_value) == 1) else f"{self.combobox_dict['descriptive_stats_box']} does not have a mode"
+            print(self.merged_data[self.combobox_dict["descriptive_stats_box"]])
 
-            self.mean_text_bar.insert("1.0", self.merged_data[self.combobox_dict["descriptive_stats_box"]].mean())
-            self.median_text_bar.insert("1.0", self.merged_data[self.combobox_dict["descriptive_stats_box"]].median())
+            self.mean_text_bar.insert("1.0", round(self.merged_data[self.combobox_dict["descriptive_stats_box"]].mean(), 5))
+            self.median_text_bar.insert("1.0", round(self.merged_data[self.combobox_dict["descriptive_stats_box"]].median(), 5))
             self.mode_text_bar.insert("1.0", output_mode)
                                        
         self.window = tk.Tk()
@@ -249,9 +250,9 @@ class GUIPractice:
         create_label("Mode", 0.155, 0.85)
         create_button("Generate stats", generate_stats, 0.05, 0.75, button_width = 14)
         self.select_numerical_variables = create_combobox(0.05, 0.7, "descriptive_stats_box")
-        self.mean_text_bar              = create_text_bar(1, 0, 0, 0.155, 0.7, 243)
-        self.median_text_bar            = create_text_bar(1, 0, 0, 0.155, 0.8, 243)
-        self.mode_text_bar              = create_text_bar(1, 0, 0, 0.155, 0.9, 243)
+        self.mean_text_bar              = create_text_bar(1, 0, 0, 0.15, 0.7, 244, state = "normal")
+        self.median_text_bar            = create_text_bar(1, 0, 0, 0.15, 0.8, 244, state = "normal")
+        self.mode_text_bar              = create_text_bar(1, 0, 0, 0.15, 0.9, 244, state = "normal")
 
         create_label("6. Data Preview", 0.35, 0.15)
         create_label("7. Variable Chart", 0.65, 0.15)
@@ -259,7 +260,7 @@ class GUIPractice:
         self.window.mainloop()
 
 if __name__ == "__main__":
-    with open(r"C:\Users\82102\Python_Projects\GUIPractice\config\GUIPractice_config.json", "r") as f:
+    with open(r"C:\Users\USER\Desktop\Python_Projects\Projects\TkinterGUIs\config\GUIPractice_config.json", "r") as f:
         config_dict = json.load(f)
 
     gp = GUIPractice(**config_dict["GUIPractice"]["constructor"])
