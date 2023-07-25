@@ -78,8 +78,8 @@ class GUIPractice:
             #         drop_box.current(0)
 
         def load_file(file_number):
-            def json_loader(filename: str):
-                with open(filename, "r") as f:
+            def json_loader(filename: str, encoding: str = "utf-8"):
+                with open(filename, "r", encoding = encoding) as f:
                     json_datafile = pd.DataFrame(json.load(f))
                 
                 return json_datafile
@@ -97,7 +97,7 @@ class GUIPractice:
 
                 descriptive_stats_list = ["-"]
 
-                self.loaded_data = load_dict[self.filename.lower().split(".")[-1]](self.filename)
+                self.loaded_data = load_dict[self.filename.lower().split(".")[-1]](self.filename, encoding = "latin-1")
                 self.data_dictionary[f"Data_{str(file_number).zfill(2)}"] = self.loaded_data
                 self.status_label.config(text = f"File {file_number} Loaded", fg = "blue")
                 
@@ -118,9 +118,9 @@ class GUIPractice:
                     self.status_label.config(text = "Only csv, xlsx and json files allowed", fg = "red")
                     self.filename_bar.delete("1.0", "end")
                 
-        def save_file(filler_func: None):
+        def save_file(filler_func = None):
             try:
-                save_data_object = self.loaded_data if type(self.loaded_data) == dict else json.loads(self.loaded_data.to_json())
+                save_data_object = self.merged_data if type(self.merged_data) == dict else json.loads(self.loaded_data.to_json())
                 save_data_name   = fd.asksaveasfilename(initialfile = "Untitled.json", defaultextension = ".json", filetypes = [("JSON file", "*.json")])
 
                 with open(save_data_name, "w") as f:
@@ -145,8 +145,8 @@ class GUIPractice:
 
                 self.status_label.config(text = "Datasets merged", fg = "blue")
                 self.select_filter_variable["values"]  = ["Select a variable", "All"] + list(self.merged_data.columns)
-                self.select_filter_operation["values"] = ["Select an operation"] + ["Greater than or equal", "Greater than", "Lesser than", "Lesser than or equal", "Equals", "Does not equal"]
-                self.filter_value_text_box.insert("1.0", "Input filter values")
+                self.select_filter_operation["values"] = ["Select an operation"] + ["Greater than or equal", "Greater than", "Lesser than", "Lesser than or equal", "Equals", "Does not equal", "Drop null values"]
+                self.filter_value_text_box.insert("1.0", 0)
                 self.select_filter_variable.current(0)
                 self.select_filter_operation.current(0)
                                 
@@ -154,19 +154,44 @@ class GUIPractice:
                 self.status_label.config(text = "Inputs required for merge operation are missing, please ensure that datasets are loaded and the options for the merge operation are specified correctly", fg = "red")
 
         def apply_transformation(event):
-            filter_value = self.filter_value_text_box.get("1.0", "end") if (self.combobox_dict["filter_variable"] in self.merged_data.select_dtypes(include = "object").columns) else float(self.filter_value_text_box.get("1.0", "end"))
+            try:
+                filter_value = self.filter_value_text_box.get("1.0", "end") if (self.combobox_dict["filter_variable"] in self.merged_data.select_dtypes(include = "object").columns) else float(self.filter_value_text_box.get("1.0", "end"))
 
-            temporary_data = {
-                "Greater than or equal" : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] >= filter_value],
-                "Greater than"          : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] >  filter_value],
-                "Lesser than or equal"  : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] <= filter_value],
-                "Lesser than"           : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] <  filter_value],
-                "Equals"                : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] == filter_value],
-                "Does not equal"        : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] != filter_value]
-            }
+                temporary_data = {
+                    "Greater than or equal" : {
+                        "data"    : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] >= filter_value],
+                        "message" : f"Values lesser than {filter_value} for {self.combobox_dict['filter_variable']} removed"
+                    },
+                    "Greater than" : {
+                        "data"    : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] >  filter_value],
+                        "message" : f"Values lesser than or equal to {filter_value} for {self.combobox_dict['filter_variable']} removed"
+                    },
+                    "Lesser than or equal" : {
+                        "data"    : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] <= filter_value],
+                        "message" : f"Values greater than {filter_value} for {self.combobox_dict['filter_variable']} removed"
+                    },
+                    "Lesser than" : {
+                        "data"    : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] <  filter_value],
+                        "message" : f"Values greater than or equal to {filter_value} for {self.combobox_dict['filter_variable']} removed"
+                    },
+                    "Equals" : {
+                        "data"    : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] == filter_value],
+                        "message" : f"Values not equal to {filter_value} for {self.combobox_dict['filter_variable']} removed"
+                    },
+                    "Does not equal" : {
+                        "data"    : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] != filter_value],
+                        "message" : f"Values equal to {filter_value} for {self.combobox_dict['filter_variable']} removed"
+                    },
+                    "Drop null values" : {
+                        "data"    : self.merged_data.dropna(subset = [self.combobox_dict["filter_variable"]]),
+                        "message" : f"Rows with null values in {self.combobox_dict['filter_variable']} removed"
+                    }
+                }
 
-            self.merged_data = temporary_data[self.combobox_dict["filter_operation"]]
-            self.status_label.config(text = "Filters applied")                
+                self.merged_data = temporary_data[self.combobox_dict["filter_operation"]]["data"]
+                self.status_label.config(text = temporary_data[self.combobox_dict["filter_operation"]]["message"])                
+            except KeyError:
+                self.status_label.config(text = "Please select a variable for data transformation operations")
                                        
         self.window = tk.Tk()
         self.window.title(self.window_message)
@@ -197,25 +222,24 @@ class GUIPractice:
         self.select_filter_operation = create_combobox(0.15, 0.35, "filter_operation")
         self.filter_value_text_box   = create_text_bar(1, 0, 0, 0.25, 0.35, 106, state = "normal")
         
-        # create_label("4. Save Data", 0.05, 0.45)
-        # self.final_variable_selection = create_text_bar(1, 0, 0, 0.05, 0.5, 408, state = "normal")
-        # create_button("Save Dataset", save_file, 0.05, 0.55, button_width = 57)
+        create_label("4. Save Data: Enter variables to keep in the saved dataset", 0.05, 0.45)
+        self.final_variable_selection = create_text_bar(1, 0, 0, 0.05, 0.5, 408, state = "normal")
+        create_button("Save Dataset", save_file, 0.05, 0.55, button_width = 57)
         
-        # create_label("5. Descriptive Statistics (for numeric columns)", 0.05, 0.6)
-        # create_label("Mean", 0.05, 0.65)
-        # create_label("Median", 0.05, 0.75)
-        # create_label("Mode", 0.05, 0.85)
+        create_label("5. Descriptive Statistics (for numeric columns)", 0.05, 0.6)
+        create_label("Mean", 0.05, 0.65)
+        create_label("Median", 0.05, 0.75)
+        create_label("Mode", 0.05, 0.85)
 
-        # create_label("6. Data Preview", 0.35, 0.15)
-        # create_label("7. Variable Chart", 0.65, 0.15)
+        create_label("6. Data Preview", 0.35, 0.15)
+        create_label("7. Variable Chart", 0.65, 0.15)
         
         self.window.mainloop()
 
 if __name__ == "__main__":
-    with open(r"C:/Users/User/Desktop/GUIPractice/config/GUIPractice_config.json", "r") as f:
+    with open(r"C:\Users\USER\Desktop\Python_Projects\Projects\TkinterGUIs\config\GUIPractice_config.json", "r") as f:
         config_dict = json.load(f)
 
     gp = GUIPractice(**config_dict["GUIPractice"]["constructor"])
     gp.settings_method(**config_dict["GUIPractice"]["settings_method"])
     gp.create_initial_state()
- 
