@@ -159,6 +159,7 @@ class GUIPractice:
                 self.filter_value_text_box.insert("1.0", 0)
                 self.select_filter_variable.current(0)
                 self.select_filter_operation.current(0)
+                self.select_numerical_variables.current(0)
                                 
             except AttributeError:
                 self.status_label.config(text = "Inputs required for merge operation are missing, please ensure that datasets are loaded and the options for the merge operation are specified correctly", fg = "red")
@@ -202,6 +203,14 @@ class GUIPractice:
                 self.status_label.config(text = temporary_data[self.combobox_dict["filter_operation"]]["message"])                
             except KeyError:
                 self.status_label.config(text = "Please select a variable for data transformation operations")
+
+        def generate_stats():
+            mode_value  = self.merged_data[self.combobox_dict["descriptive_stats_box"]].mode()
+            output_mode = mode_value[0] if (len(mode_value) == 1) else f"{self.combobox_dict['descriptive_stats_box']} does not have a mode"
+
+            self.mean_text_bar.insert("1.0", self.merged_data[self.combobox_dict["descriptive_stats_box"]].mean())
+            self.median_text_bar.insert("1.0", self.merged_data[self.combobox_dict["descriptive_stats_box"]].median())
+            self.mode_text_bar.insert("1.0", output_mode)
                                        
         self.window = tk.Tk()
         self.window.title(self.window_message)
@@ -238,11 +247,11 @@ class GUIPractice:
         create_label("Mean", 0.155, 0.65)
         create_label("Median", 0.155, 0.75)
         create_label("Mode", 0.155, 0.85)
-        create_button("Generate stats", save_file, 0.05, 0.75, button_width = 14)
+        create_button("Generate stats", generate_stats, 0.05, 0.75, button_width = 14)
         self.select_numerical_variables = create_combobox(0.05, 0.7, "descriptive_stats_box")
         self.mean_text_bar              = create_text_bar(1, 0, 0, 0.155, 0.7, 243)
         self.median_text_bar            = create_text_bar(1, 0, 0, 0.155, 0.8, 243)
-        self.mode_bar                   = create_text_bar(1, 0, 0, 0.155, 0.9, 243)
+        self.mode_text_bar              = create_text_bar(1, 0, 0, 0.155, 0.9, 243)
 
         create_label("6. Data Preview", 0.35, 0.15)
         create_label("7. Variable Chart", 0.65, 0.15)
