@@ -91,7 +91,6 @@ class GUIPractice:
             
                 load_dict = {
                     "csv"  : pd.read_csv,
-                    "xlsx" : pd.read_excel,
                     "json" : json_loader
                 }
 
@@ -115,7 +114,7 @@ class GUIPractice:
                 if (hasattr(self, "loaded_data")):
                     pass                    
                 else:
-                    self.status_label.config(text = "Only csv, xlsx and json files allowed", fg = "red")
+                    self.status_label.config(text = "Only csv and json files allowed", fg = "red")
                     self.filename_bar.delete("1.0", "end")
                 
         def save_file(filler_func = None):
@@ -239,17 +238,22 @@ class GUIPractice:
         self.select_filter_operation = create_combobox(0.15, 0.35, "filter_operation")
         self.filter_value_text_box   = create_text_bar(1, 0, 0, 0.25, 0.35, 106, state = "normal")
         
-        create_label("4. Enter variables to save, separate variables with commas", 0.05, 0.45)
-        self.final_variable_selection = create_text_bar(1, 0, 0, 0.05, 0.5, 408, state = "normal")
-        create_button("Save Dataset", save_file, 0.05, 0.55, button_width = 57)
+        create_label("4. Rename Variables", 0.05, 0.45)
+        self.original_name_text_box = create_text_bar(1, 0, 0, 0.05, 0.5, 106, state = "normal")
+        self.changed_name_text_box  = create_text_bar(1, 0, 0, 0.05, 0.5, 106, state = "normal")
+        create_button("Rename Variable", save_file, 0.05, 0.5, button_width = 14)
+
+        create_label("5. Enter variables to save, separate variables with commas", 0.05, 0.55)
+        self.final_variable_selection = create_text_bar(1, 0, 0, 0.05, 0.6, 408, state = "normal")
+        create_button("Save Dataset", save_file, 0.05, 0.6, button_width = 57)
         
-        create_label("5. Descriptive Statistics (for numeric columns)", 0.05, 0.6)
-        create_label("Select variables", 0.05, 0.65)
-        create_label("Mean", 0.155, 0.65)
-        create_label("Median", 0.155, 0.75)
-        create_label("Mode", 0.155, 0.85)
-        create_button("Generate stats", generate_stats, 0.05, 0.75, button_width = 14)
-        self.select_numerical_variables = create_combobox(0.05, 0.7, "descriptive_stats_box")
+        create_label("6. Descriptive Statistics (for numeric columns)", 0.05, 0.65)
+        create_label("Select variables", 0.05, 0.7)
+        create_label("Mean", 0.155, 0.8)
+        create_label("Median", 0.155, 0.9)
+        create_label("Mode", 0.155, 1)
+        create_button("Generate Stats", generate_stats, 0.05, 0.8, button_width = 14)
+        self.select_numerical_variables = create_combobox(0.05, 0.75, "descriptive_stats_box")
         self.mean_text_bar              = create_text_bar(1, 0, 0, 0.15, 0.7, 244, state = "normal")
         self.median_text_bar            = create_text_bar(1, 0, 0, 0.15, 0.8, 244, state = "normal")
         self.mode_text_bar              = create_text_bar(1, 0, 0, 0.15, 0.9, 244, state = "normal")
@@ -260,9 +264,9 @@ class GUIPractice:
         self.window.mainloop()
 
 if __name__ == "__main__":
-    with open(r"C:\Users\USER\Desktop\Python_Projects\Projects\TkinterGUIs\config\GUIPractice_config.json", "r") as f:
+    with open(r"C:\Users\User\Desktop\GUIPractice\config\GUIPractice_config.json", "r") as f:
         config_dict = json.load(f)
 
     gp = GUIPractice(**config_dict["GUIPractice"]["constructor"])
     gp.settings_method(**config_dict["GUIPractice"]["settings_method"])
-    gp.create_initial_state()
+    gp.create_initial_state() 
