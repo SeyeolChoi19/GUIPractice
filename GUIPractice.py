@@ -1,10 +1,12 @@
 import json
 
-import tkinter as tk 
-import pandas  as pd 
+import tkinter           as tk 
+import pandas            as pd 
+import matplotlib.pyplot as plt 
 
-from tkinter import ttk 
-from tkinter import filedialog as fd 
+from tkinter                           import ttk 
+from tkinter                           import filedialog as fd 
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class GUIPractice:
     def __init__(self, window_message: str, font_type: str = "Calibri"):
@@ -201,7 +203,7 @@ class GUIPractice:
                 self.merged_data = temporary_data[self.combobox_dict["filter_operation"]]["data"]
                 self.status_label.config(text = temporary_data[self.combobox_dict["filter_operation"]]["message"])                
             except KeyError:
-                self.status_label.config(text = "Please select a variable for data transformation operations")
+                self.status_label.config(text = "Please select a variable for data transformation operations", fg = "red")
 
         def generate_stats(event):
             mode_value  = self.merged_data[self.combobox_dict["descriptive_stats_box"]].mode()
@@ -226,9 +228,6 @@ class GUIPractice:
         self.window.title(self.window_message)
         self.window.geometry(self.window_geometry)
         self.window.resizable(0, 0)
-
-        self.chart_window = create_text_bar(42, 6, 6, 0.35, 0.19, 400)
-        self.data_window  = create_text_bar(42, 6, 6, 0.65, 0.19, 400)
 
         self.status_label = create_label(" ", 0.15, 0.05)
         create_label("1. Load CSV file", 0.05, 0.05)
@@ -270,8 +269,10 @@ class GUIPractice:
         self.median_text_bar            = create_text_bar(1, 0, 0, 0.205, 0.83, 80, state = "normal")
         self.mode_text_bar              = create_text_bar(1, 0, 0, 0.265, 0.83, 80, state = "normal")
 
-        create_label("6. Data Preview", 0.35, 0.15)
-        create_label("7. Variable Chart", 0.65, 0.15)
+        self.chart_window = create_text_bar(42, 6, 6, 0.35, 0.19, 400)
+        self.data_window  = create_text_bar(42, 6, 6, 0.65, 0.19, 400)
+        create_label("7. Data Preview", 0.35, 0.15)
+        create_label("8. Variable Chart", 0.65, 0.15)
         
         self.window.mainloop()
 
