@@ -213,11 +213,15 @@ class GUIPractice:
             self.mode_text_bar.insert("1.0", output_mode)
 
         def rename_variable(event):
-            temp_data         = self.merged_data.copy()
-            temp_data.columns = [i.lower() for i in temp_data.columns]
-            temp_data         = temp_data.rename(columns = {self.original_name_text_box.get("1.0", "end").lower() : self.changed_name_text_box.get("1.0", "end")})
-                        
-                                       
+            if (self.original_name_text_box.get("1.0", "end").strip() not in self.merged_data.columns):
+                self.status_label.config(text = "Variable name error detected", fg = "red")
+                raise KeyError
+            else:
+                self.merged_data = self.merged_data.rename(columns = {self.original_name_text_box.get("1.0", "end").strip() : self.changed_name_text_box.get("1.0", "end").strip()})                        
+                self.select_filter_variable["values"]     = ["Select a variable", "All"] + list(self.merged_data.columns)
+                self.select_numerical_variables["values"] = ["Select a variable"] + [i for i in self.merged_data.select_dtypes(include = ["int64", "float64"]).columns]
+                self.status_label.config(text = f"Variable renamed", fg = "blue")
+                                     
         self.window = tk.Tk()
         self.window.title(self.window_message)
         self.window.geometry(self.window_geometry)
@@ -247,7 +251,7 @@ class GUIPractice:
         create_label("4. Rename Variables", 0.05, 0.43)
         create_label("Variable Name", 0.05, 0.47)
         create_label("New Name", 0.05, 0.51)
-        create_button("Rename Variable", save_file, 0.05, 0.55, button_width = 57)
+        create_button("Rename Variable", rename_variable, 0.05, 0.55, button_width = 57)
         self.original_name_text_box = create_text_bar(1, 0, 0, 0.15, 0.47, 252, state = "normal")
         self.changed_name_text_box  = create_text_bar(1, 0, 0, 0.15, 0.51, 252, state = "normal")
 
@@ -272,9 +276,10 @@ class GUIPractice:
         self.window.mainloop()
 
 if __name__ == "__main__":
-    with open(r"C:\Users\User\Desktop\GUIPractice\config\GUIPractice_config.json", "r") as f:
+    with open(r"C:\Users\USER\Desktop\Python_Projects\Projects\TkinterGUIs\config\GUIPractice_config.json", "r") as f:
         config_dict = json.load(f)
 
     gp = GUIPractice(**config_dict["GUIPractice"]["constructor"])
     gp.settings_method(**config_dict["GUIPractice"]["settings_method"])
     gp.create_initial_state() 
+
