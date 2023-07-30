@@ -145,6 +145,15 @@ class GUIPractice:
                 self.status_label.config(text = "Illegal directory, please check if the destination folder was selected correctly", fg = "red")
 
         def merge_data(event):
+            def parse_date(date_string: str):
+                date_string = ""
+
+                if (date_string != ""):
+                    date_array  = str(date_string).split("/")
+                    date_string = f"{str(date_array[-1]).zfill(2)}-{str(date_array[1]).zfill(2)}-{str(date_array[0]).zfill(2)}" 
+
+                return date_string
+
             try:
                 self.merged_data = pd.merge(
                     self.data_dictionary["Data_01"], 
@@ -153,9 +162,12 @@ class GUIPractice:
                     how = self.combobox_dict["join_type"]
                 )
 
+                self.merged_data["Date"]             = self.merged_data.apply(lambda x: parse_date(x["Date"]), axis = 1)
+                self.merged_data["In-Use ERP Total"] = self.merged_data["In-Use ERP Total"].str.replace(".", "").str.replace(",", "").astype(float) / 1000
+
                 self.status_label.config(text = "Datasets merged", fg = "blue")
                 self.select_filter_variable["values"]     = ["Select a variable", "All"] + list(self.merged_data.columns)
-                self.select_filter_operation["values"]    = ["Select an operation"] + ["Greater than or equal", "Greater than", "Lesser than", "Lesser than or equal", "Equals", "Does not equal", "Drop null values"]
+                self.select_filter_operation["values"]    = ["Select an operation"] + ["Greater than or equal", "Greater than", "Lesser than", "Lesser than or equal", "Equals", "Contains", "Does not equal", "Drop null values"]
                 self.select_numerical_variables["values"] = ["Select a variable"] + [i for i in self.merged_data.select_dtypes(include = ["int64", "float64"]).columns]
                 self.filter_value_text_box.insert("1.0", 0)
                 self.select_filter_variable.current(0)
@@ -190,6 +202,10 @@ class GUIPractice:
                         "data"    : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] == filter_value],
                         "message" : f"Values not equal to {filter_value} for {self.combobox_dict['filter_variable']} removed"
                     },
+                    "Contains" : {
+                        "data"    : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]].isin([i.strip() for i in str(filter_value).split(",")])],
+                        "message" : f"Values not in {filter_value} for {self.combobox_dict['filter_variable']} removed"
+                    },
                     "Does not equal" : {
                         "data"    : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] != filter_value],
                         "message" : f"Values equal to {filter_value} for {self.combobox_dict['filter_variable']} removed"
@@ -223,36 +239,33 @@ class GUIPractice:
                 self.select_numerical_variables["values"] = ["Select a variable"] + [i for i in self.merged_data.select_dtypes(include = ["int64", "float64"]).columns]
                 self.status_label.config(text = f"Variable renamed", fg = "blue")
 
-        def data_preview(event, relative_x: float = 0.355, relative_y: float = 0.237):
+        def data_preview(event, relative_x: float = 0.001, relative_y: float = 0.001):
             variables_to_preview      = [i.strip() for i in self.preview_text_box.get("1.0", "end").lower().split(",")]
             preview_dataframe         = self.merged_data.copy()
-            preview_dataframe.columns = [i.lower() for i in preview_dataframe.columns]
+            preview_dataframe.columns = [i.lower().strip() for i in preview_dataframe.columns]
             preview_dataframe         = preview_dataframe[variables_to_preview]
+
+            preview_dataframe["Count"] = 1
+
+            preview_dataframe = preview_dataframe.groupby(variables_to_preview + ["Count"], as_index = False).sum()
             
             fig, ax = plt.subplots(figsize = (9, 5))
             ax.axis('off')
 
-            plotted_table = pd.plotting.table(ax, preview_dataframe.head(20), loc = ["upper center"], colWidths = [0.3] * len(variables_to_preview))
+            plotted_table = pd.plotting.table(ax, preview_dataframe.head(20), loc = ["upper center"], colWidths = [0.1] * (len(variables_to_preview) + 1))
             plotted_table.auto_set_font_size(False)
-            plotted_table.set_fontsize(6)
+            plotted_table.set_fontsize(4)
 
-            table_canvas         = FigureCanvasTkAgg(fig, master = self.dataframe_viewer)
-            horizontal_scrollbar = tk.Scrollbar(table_canvas, orient = "horizontal")
-            vertical_scrollbar   = tk.Scrollbar(table_canvas, orient = "vertical")
-            horizontal_scrollbar.place(relx = 0.7, rely = 0.35)
-            vertical_scrollbar.place(relx = 0.7, rely = 0.35)
+            table_canvas = FigureCanvasTkAgg(fig, master = self.dataframe_viewer)
             table_canvas.draw()
-            table_canvas.get_tk_widget().place(relx = relative_x, rely = relative_y, width = 390, height = 500)
-
+            table_canvas.get_tk_widget().place(relx = relative_x, rely = relative_y, width = 800, height = 500) 
+            
             plt.close()
                
         self.window = tk.Tk()
         self.window.title(self.window_message)
         self.window.geometry(self.window_geometry)
         self.window.resizable(0, 0)
-
-        self.dataframe_viewer = ttk.Frame(self.window)
-        self.dataframe_viewer.place(width = 400, height = 500, relx = 0.35, rely = 0.23)
 
         self.status_label = create_label(" ", 0.15, 0.05)
         create_label("1. Load CSV file", 0.05, 0.05)
@@ -294,18 +307,17 @@ class GUIPractice:
         self.median_text_bar            = create_text_bar(1, 0, 0, 0.205, 0.83, 80, state = "normal")
         self.mode_text_bar              = create_text_bar(1, 0, 0, 0.265, 0.83, 80, state = "normal")
 
-        create_label("7. Grouped Data Visualizer", 0.35, 0.15)
-        self.preview_text_box = create_text_bar(1, 0, 0, 0.35, 0.19, 252, state = "normal")
-        self.chart_window     = create_text_bar(39, 6, 6, 0.35, 0.23, 400)
-        create_button("Preview Data", data_preview, 0.54, 0.19, button_width = 15)
-
-        self.data_window  = create_text_bar(39, 6, 6, 0.65, 0.23, 400)
-        create_label("8. Correlation Chart", 0.65, 0.15)
+        create_label("7. Data Visualizer", 0.35, 0.15)
+        self.preview_text_box = create_text_bar(1, 0, 0, 0.35, 0.194, 700, state = "normal")
+        self.chart_window     = create_text_bar(39, 6, 6, 0.35, 0.23, 901)
+        self.dataframe_viewer = ttk.Frame(self.chart_window)
+        self.dataframe_viewer.place(width = 896, height = 505, relx = 0.001, rely = 0.001)
+        create_button("Preview Data", data_preview, 0.85, 0.19, button_width = 15)
         
         self.window.mainloop()
 
 if __name__ == "__main__":
-    with open(r"C:\Users\USER\Desktop\Python_Projects\Projects\TkinterGUIs\config\GUIPractice_config.json", "r") as f:
+    with open(r"C:\Users\82102\Python_Projects\GUIPractice\config\GUIPractice_config.json", "r") as f:
         config_dict = json.load(f)
 
     gp = GUIPractice(**config_dict["GUIPractice"]["constructor"])
