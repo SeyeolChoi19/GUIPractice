@@ -208,8 +208,7 @@ class GUIPractice:
         def generate_stats(event):
             mode_value  = self.merged_data[self.combobox_dict["descriptive_stats_box"]].mode()
             output_mode = mode_value.iloc[0] if (len(mode_value) == 1) else f"{self.combobox_dict['descriptive_stats_box']} does not have a mode"
-            print(self.merged_data[self.combobox_dict["descriptive_stats_box"]])
-
+        
             self.mean_text_bar.insert("1.0", round(self.merged_data[self.combobox_dict["descriptive_stats_box"]].mean(), 5))
             self.median_text_bar.insert("1.0", round(self.merged_data[self.combobox_dict["descriptive_stats_box"]].median(), 5))
             self.mode_text_bar.insert("1.0", output_mode)
@@ -224,27 +223,36 @@ class GUIPractice:
                 self.select_numerical_variables["values"] = ["Select a variable"] + [i for i in self.merged_data.select_dtypes(include = ["int64", "float64"]).columns]
                 self.status_label.config(text = f"Variable renamed", fg = "blue")
 
-        def data_preview(event):
-            variables_to_preview      = self.preview_text_box.get("1.0", "end").lower().split(",")
+        def data_preview(event, relative_x: float = 0.355, relative_y: float = 0.237):
+            variables_to_preview      = [i.strip() for i in self.preview_text_box.get("1.0", "end").lower().split(",")]
             preview_dataframe         = self.merged_data.copy()
-            preview_dataframe.columns = [i.lower() for i in preview_dataframe.lower()]
+            preview_dataframe.columns = [i.lower() for i in preview_dataframe.columns]
             preview_dataframe         = preview_dataframe[variables_to_preview]
-
-            fig, ax = plt.subplot(figsize = (8, 4))
+            
+            fig, ax = plt.subplots(figsize = (9, 5))
             ax.axis('off')
 
-            plotted_table = pd.plotting.table(ax, preview_dataframe.head(5), loc = ["upper center"], colWidths = [0.2, 0.2, 0.2])
-            plotted_table.auto_set_font_size(False).set_fontsize(10)
+            plotted_table = pd.plotting.table(ax, preview_dataframe.head(20), loc = ["upper center"], colWidths = [0.3] * len(variables_to_preview))
+            plotted_table.auto_set_font_size(False)
+            plotted_table.set_fontsize(6)
 
-            table_canvas = FigureCanvasTkAgg(fig, master = self.window)
+            table_canvas         = FigureCanvasTkAgg(fig, master = self.dataframe_viewer)
+            horizontal_scrollbar = tk.Scrollbar(table_canvas, orient = "horizontal")
+            vertical_scrollbar   = tk.Scrollbar(table_canvas, orient = "vertical")
+            horizontal_scrollbar.place(relx = 0.7, rely = 0.35)
+            vertical_scrollbar.place(relx = 0.7, rely = 0.35)
             table_canvas.draw()
-            table_canvas.get_tk_widget().place(relx = 0.5)
+            table_canvas.get_tk_widget().place(relx = relative_x, rely = relative_y, width = 390, height = 500)
 
-                                     
+            plt.close()
+               
         self.window = tk.Tk()
         self.window.title(self.window_message)
         self.window.geometry(self.window_geometry)
         self.window.resizable(0, 0)
+
+        self.dataframe_viewer = ttk.Frame(self.window)
+        self.dataframe_viewer.place(width = 400, height = 500, relx = 0.35, rely = 0.23)
 
         self.status_label = create_label(" ", 0.15, 0.05)
         create_label("1. Load CSV file", 0.05, 0.05)
@@ -286,10 +294,10 @@ class GUIPractice:
         self.median_text_bar            = create_text_bar(1, 0, 0, 0.205, 0.83, 80, state = "normal")
         self.mode_text_bar              = create_text_bar(1, 0, 0, 0.265, 0.83, 80, state = "normal")
 
-        create_label("7. Enter variables to preview (separate with commas)", 0.35, 0.15)
+        create_label("7. Grouped Data Visualizer", 0.35, 0.15)
         self.preview_text_box = create_text_bar(1, 0, 0, 0.35, 0.19, 252, state = "normal")
         self.chart_window     = create_text_bar(39, 6, 6, 0.35, 0.23, 400)
-        create_button("Preview Data", generate_stats, 0.54, 0.19, button_width = 15)
+        create_button("Preview Data", data_preview, 0.54, 0.19, button_width = 15)
 
         self.data_window  = create_text_bar(39, 6, 6, 0.65, 0.23, 400)
         create_label("8. Correlation Chart", 0.65, 0.15)
@@ -297,52 +305,9 @@ class GUIPractice:
         self.window.mainloop()
 
 if __name__ == "__main__":
-    with open(r"C:\Users\82102\Python_Projects\GUIPractice\config\GUIPractice_config.json", "r") as f:
+    with open(r"C:\Users\USER\Desktop\Python_Projects\Projects\TkinterGUIs\config\GUIPractice_config.json", "r") as f:
         config_dict = json.load(f)
 
     gp = GUIPractice(**config_dict["GUIPractice"]["constructor"])
     gp.settings_method(**config_dict["GUIPractice"]["settings_method"])
     gp.create_initial_state() 
-
-# import tkinter as tk
-# from tkinter import ttk
-# import pandas as pd
-# import matplotlib.pyplot as plt
-# from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
-# data = {
-#     'Name': ['John', 'Jane', 'Mike', 'Emily'],
-#     'Age': [25, 30, 22, 28],
-#     'City': ['New York', 'Los Angeles', 'Chicago', 'Houston']
-# }
-# df = pd.DataFrame(data)
-
-# def display_dataframe_in_tkinter():
-#     # Create the Tkinter window
-#     root = tk.Tk()
-#     root.title('DataFrame Viewer')
-    
-#     # Create a frame to hold the DataFrame display
-#     frame = ttk.Frame(root)
-#     frame.pack(fill='both', expand=True)
-    
-#     # Create a matplotlib figure and axis to hold the DataFrame plot
-#     fig, ax = plt.subplots(figsize=(8, 4))
-    
-#     # Convert the DataFrame to a table using the pandas method
-#     table = pd.plotting.table(ax, df, loc='upper center', colWidths=[0.2, 0.2, 0.2])
-#     table.auto_set_font_size(False)
-#     table.set_fontsize(10)
-    
-#     # Hide the axes
-#     ax.axis('off')
-    
-#     # Create a canvas to display the plot in the Tkinter window
-#     canvas = FigureCanvasTkAgg(fig, master=frame)
-#     canvas.draw()
-#     canvas.get_tk_widget().pack(fill='both', expand=True)
-    
-#     # Start the Tkinter main loop
-#     root.mainloop()
-
-# display_dataframe_in_tkinter()
