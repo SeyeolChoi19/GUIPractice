@@ -52,3 +52,19 @@ class BasicMethods:
             text_bar.place(width = bar_width)
 
         return text_bar    
+    
+    def create_combobox(self, relative_x: float, relative_y: float, combobox_designator: str) -> ttk.Combobox:
+        def combobox_trigger(event):
+            self.combobox_dict[combobox_designator] = vars_combobox.get()
+
+        selected_value = tk.StringVar()
+        keep_value     = selected_value.get()
+        vars_combobox  = ttk.Combobox(self.window, textvariable = keep_value, width = 12)
+
+        vars_combobox["values"] = ["-"]
+        vars_combobox["state"]  = "readonly"
+        vars_combobox.current(0)
+        vars_combobox.place(relx = relative_x, rely = relative_y)
+        vars_combobox.bind("<<ComboboxSelected", combobox_trigger)
+
+        return vars_combobox
