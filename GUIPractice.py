@@ -2,6 +2,7 @@ import json
 
 import tkinter           as tk 
 import pandas            as pd 
+import seaborn           as sns
 import matplotlib.pyplot as plt 
 
 from tkinter                           import ttk 
@@ -96,8 +97,6 @@ class GUIPractice:
                     "json" : json_loader
                 }
 
-                descriptive_stats_list = ["-"]
-
                 self.loaded_data = load_dict[self.filename.lower().split(".")[-1]](self.filename, encoding = "latin-1")
                 self.data_dictionary[f"Data_{str(file_number).zfill(2)}"] = self.loaded_data
                 self.status_label.config(text = f"File {file_number} Loaded", fg = "blue")
@@ -146,13 +145,13 @@ class GUIPractice:
 
         def merge_data(event):
             def parse_date(date_string: str):
-                date_string = ""
+                output_string = ""
 
-                if (date_string != ""):
-                    date_array  = str(date_string).split("/")
-                    date_string = f"{str(date_array[-1]).zfill(2)}-{str(date_array[1]).zfill(2)}-{str(date_array[0]).zfill(2)}" 
+                if (date_string != "0"):
+                    date_array    = str(date_string).split("/")
+                    output_string = f"{str(date_array[-1]).zfill(2)}-{str(date_array[1]).zfill(2)}-{str(date_array[0]).zfill(2)}" 
 
-                return date_string
+                return output_string
 
             try:
                 self.merged_data = pd.merge(
@@ -162,12 +161,13 @@ class GUIPractice:
                     how = self.combobox_dict["join_type"]
                 )
 
+                self.merged_data["Date"]             = self.merged_data["Date"].fillna("0")
                 self.merged_data["Date"]             = self.merged_data.apply(lambda x: parse_date(x["Date"]), axis = 1)
                 self.merged_data["In-Use ERP Total"] = self.merged_data["In-Use ERP Total"].str.replace(".", "").str.replace(",", "").astype(float) / 1000
 
                 self.status_label.config(text = "Datasets merged", fg = "blue")
                 self.select_filter_variable["values"]     = ["Select a variable", "All"] + list(self.merged_data.columns)
-                self.select_filter_operation["values"]    = ["Select an operation"] + ["Greater than or equal", "Greater than", "Lesser than", "Lesser than or equal", "Equals", "Contains", "Does not equal", "Drop null values"]
+                self.select_filter_operation["values"]    = ["Select an operation"] + ["Greater than or equal", "Greater than", "Lesser than", "Lesser than or equal", "Equals", "Does not equal", "Contains", "Does not contain", "Drop null values"]
                 self.select_numerical_variables["values"] = ["Select a variable"] + [i for i in self.merged_data.select_dtypes(include = ["int64", "float64"]).columns]
                 self.filter_value_text_box.insert("1.0", 0)
                 self.select_filter_variable.current(0)
@@ -184,31 +184,35 @@ class GUIPractice:
                 temporary_data = {
                     "Greater than or equal" : {
                         "data"    : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] >= filter_value],
-                        "message" : f"Values lesser than {filter_value} for {self.combobox_dict['filter_variable']} removed"
+                        "message" : f"Rows lesser than {filter_value} for {self.combobox_dict['filter_variable']} removed"
                     },
                     "Greater than" : {
                         "data"    : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] >  filter_value],
-                        "message" : f"Values lesser than or equal to {filter_value} for {self.combobox_dict['filter_variable']} removed"
+                        "message" : f"Rows lesser than or equal to {filter_value} for {self.combobox_dict['filter_variable']} removed"
                     },
                     "Lesser than or equal" : {
                         "data"    : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] <= filter_value],
-                        "message" : f"Values greater than {filter_value} for {self.combobox_dict['filter_variable']} removed"
+                        "message" : f"Rows greater than {filter_value} for {self.combobox_dict['filter_variable']} removed"
                     },
                     "Lesser than" : {
                         "data"    : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] <  filter_value],
-                        "message" : f"Values greater than or equal to {filter_value} for {self.combobox_dict['filter_variable']} removed"
+                        "message" : f"Rows greater than or equal to {filter_value} for {self.combobox_dict['filter_variable']} removed"
                     },
                     "Equals" : {
                         "data"    : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] == filter_value],
-                        "message" : f"Values not equal to {filter_value} for {self.combobox_dict['filter_variable']} removed"
-                    },
-                    "Contains" : {
-                        "data"    : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]].isin([i.strip() for i in str(filter_value).split(",")])],
-                        "message" : f"Values not in {filter_value} for {self.combobox_dict['filter_variable']} removed"
+                        "message" : f"Rows not equal to {filter_value} for {self.combobox_dict['filter_variable']} removed"
                     },
                     "Does not equal" : {
                         "data"    : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]] != filter_value],
-                        "message" : f"Values equal to {filter_value} for {self.combobox_dict['filter_variable']} removed"
+                        "message" : f"Rows equal to {filter_value} for {self.combobox_dict['filter_variable']} removed"
+                    },
+                    "Contains" : {
+                        "data"    : self.merged_data[self.merged_data[self.combobox_dict["filter_variable"]].isin([i.strip() for i in str(filter_value).split(",")])],
+                        "message" : f"Rows not in {filter_value} for {self.combobox_dict['filter_variable']} removed"
+                    },
+                    "Does not contain" : {
+                        "data"    : self.merged_data[~self.merged_data[self.combobox_dict["filter_variable"]].isin([i.strip() for i in str(filter_value).split(",")])],
+                        "message" : f"Rows in {filter_value} for {self.combobox_dict['filter_variable']} removed"
                     },
                     "Drop null values" : {
                         "data"    : self.merged_data.dropna(subset = [self.combobox_dict["filter_variable"]]),
@@ -218,17 +222,21 @@ class GUIPractice:
 
                 self.merged_data = temporary_data[self.combobox_dict["filter_operation"]]["data"]
                 self.status_label.config(text = temporary_data[self.combobox_dict["filter_operation"]]["message"])                
+                self.filter_value_text_box.delete("1.0", "end")
             except KeyError:
                 self.status_label.config(text = "Please select a variable for data transformation operations", fg = "red")
+                self.filter_value_text_box.delete("1.0", "end")
 
         def generate_stats(event):
-            mode_value  = self.merged_data[self.combobox_dict["descriptive_stats_box"]].mode()
-            output_mode = mode_value.iloc[0] if (len(mode_value) == 1) else f"{self.combobox_dict['descriptive_stats_box']} does not have a mode"
+            mean_value   = round(self.merged_data[self.combobox_dict["descriptive_stats_box"]].mean(), 5)
+            median_value = round(self.merged_data[self.combobox_dict["descriptive_stats_box"]].mode(), 5)
+            mode_value   = self.merged_data[self.combobox_dict["descriptive_stats_box"]].mode()
+            output_mode  = mode_value.iloc[0] if (len(mode_value) == 1) else f"{self.combobox_dict['descriptive_stats_box']} does not have a mode"
         
-            self.mean_text_bar.insert("1.0", round(self.merged_data[self.combobox_dict["descriptive_stats_box"]].mean(), 5))
-            self.median_text_bar.insert("1.0", round(self.merged_data[self.combobox_dict["descriptive_stats_box"]].median(), 5))
-            self.mode_text_bar.insert("1.0", output_mode)
-
+            for (text_bar, output_value) in zip([self.mean_text_bar, self.median_text_bar, self.mode_text_bar], [mean_value, median_value, output_mode]):
+                text_bar.delete("1.0", "end")
+                text_bar.insert("1.0", output_value)
+            
         def rename_variable(event):
             if (self.original_name_text_box.get("1.0", "end").strip() not in self.merged_data.columns):
                 self.status_label.config(text = "Variable name error detected", fg = "red")
@@ -254,14 +262,54 @@ class GUIPractice:
 
             plotted_table = pd.plotting.table(ax, preview_dataframe.head(20), loc = ["upper center"], colWidths = [0.1] * (len(variables_to_preview) + 1))
             plotted_table.auto_set_font_size(False)
-            plotted_table.set_fontsize(4)
+            plotted_table.set_fontsize(6)
 
             table_canvas = FigureCanvasTkAgg(fig, master = self.dataframe_viewer)
             table_canvas.draw()
-            table_canvas.get_tk_widget().place(relx = relative_x, rely = relative_y, width = 800, height = 500) 
+            table_canvas.get_tk_widget().place(relx = relative_x, rely = relative_y, width = 900, height = 500) 
             
             plt.close()
-               
+            self.preview_text_box.delete("1.0", "end")
+
+        def correlation_chart(event, relative_x = 0.001, relative_y: float = 0.001):
+            def prepare_data() -> pd.DataFrame:
+                copied_data         = self.merged_data.copy()
+                copied_data.columns = [i.lower().strip() for i in self.merged_data.columns]
+
+                self.correlation_variables = [i.lower().strip() for i in self.preview_text_box.get("1.0", "end").lower().split(",")]
+                self.string_dataframe      = copied_data[[i for i in self.correlation_variables if i in copied_data.select_dtypes(include = "object").columns]]
+                self.numerical_dataframe   = copied_data[[i for i in self.correlation_variables if i in copied_data.select_dtypes(include = "number").columns]]
+                
+                for column in self.string_dataframe.columns:
+                    for (number, value) in enumerate(self.string_dataframe[column].unique()):
+                        self.string_dataframe.loc[self.string_dataframe[column] == value, column] = str(number)
+
+                    self.string_dataframe[column] = self.string_dataframe[column].astype(float)
+
+                self.output_dataframe = pd.concat([self.numerical_dataframe, self.string_dataframe], axis = 1)
+
+                return self.output_dataframe
+            
+            def create_heatmap_chart(input_data: pd.DataFrame):
+                correlation_matrix = input_data.corr()
+                sns.heatmap(correlation_matrix, annot = True, cmap = "coolwarm")
+
+                figure_canvas = FigureCanvasTkAgg(plt.gcf(), master = self.dataframe_viewer)                
+                figure_canvas.draw()
+                figure_canvas.get_tk_widget().place(relx = relative_x, rely = relative_y, width = 900, height = 500) 
+                
+                plt.close()
+                self.preview_text_box.delete("1.0", "end")
+
+            try: 
+                input_data = prepare_data()
+                create_heatmap_chart(input_data)
+                self.status_label.config(text = "Correlation heatmap generated", fg = "blue")
+            except KeyError:
+                self.status_label.config(text = "Variable not found, please check if variable names were entered correctly", fg = 'red')                
+            except AttributeError:
+                self.status_label.config(text = "Data not found, please check if data is loaded correctly", fg = 'red')
+
         self.window = tk.Tk()
         self.window.title(self.window_message)
         self.window.geometry(self.window_geometry)
@@ -308,16 +356,17 @@ class GUIPractice:
         self.mode_text_bar              = create_text_bar(1, 0, 0, 0.265, 0.83, 80, state = "normal")
 
         create_label("7. Data Visualizer", 0.35, 0.15)
-        self.preview_text_box = create_text_bar(1, 0, 0, 0.35, 0.194, 700, state = "normal")
+        self.preview_text_box = create_text_bar(1, 0, 0, 0.35, 0.194, 600, state = "normal")
         self.chart_window     = create_text_bar(39, 6, 6, 0.35, 0.23, 901)
         self.dataframe_viewer = ttk.Frame(self.chart_window)
         self.dataframe_viewer.place(width = 896, height = 505, relx = 0.001, rely = 0.001)
-        create_button("Preview Data", data_preview, 0.85, 0.19, button_width = 15)
+        create_button("Preview Data", data_preview, 0.775, 0.19, button_width = 15)
+        create_button("Correlation Viewer", correlation_chart, 0.87, 0.19, button_width = 15)
         
         self.window.mainloop()
 
 if __name__ == "__main__":
-    with open(r"C:\Users\82102\Python_Projects\GUIPractice\config\GUIPractice_config.json", "r") as f:
+    with open(r"C:\Users\User\Desktop\GUIPractice\config\GUIPractice_config.json", "r") as f:
         config_dict = json.load(f)
 
     gp = GUIPractice(**config_dict["GUIPractice"]["constructor"])
