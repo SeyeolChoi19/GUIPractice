@@ -21,7 +21,7 @@ class DataTransformationModule(MergeModule):
 
     def apply_transformation(self, event):
         try:
-            filter_value = self.filter_value_text_box.get("1.0", "end") if (self.combobox_dict["filter_variable"] in self.merged_data.select_dtypes(include = "obkect").columns) else float(self.filter_value_text_box.get("1.0", "end"))
+            filter_value = self.filter_value_text_box.get("1.0", "end") if (self.combobox_dict["filter_variable"] in self.merged_data.select_dtypes(include = "object").columns) else float(self.filter_value_text_box.get("1.0", "end"))
 
             temporary_data = {
                 "Greater than or equal" : {
@@ -62,4 +62,13 @@ class DataTransformationModule(MergeModule):
                 },
             }
 
+            self.merged_data = temporary_data[self.combobox_dict["filter_operation"]]["data"]
+            self.status_label.config(text = temporary_data[self.combobox_dict["filter_operation"]]["message"])
+            self.filter_value_text_box.delete("1.0", "end")
+        except KeyError: 
+            self.status_label.config(text = "Please select a variable for data transformation operations", fg = "red")
+            self.filter_value_text_box.delete("1.0", "end")
 
+    def create_data_transformation_module(self):
+        self.create_label("3. Data Transformation", 0.05, 0.29)
+        self.create_button("Apply Transformation", self.apply_transformation, 0.05, 0.37, button_width = 57)
