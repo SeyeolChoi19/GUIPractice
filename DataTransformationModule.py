@@ -1,15 +1,4 @@
-import json
-
-import tkinter           as tk 
-import pandas            as pd 
-import seaborn           as sns
-import matplotlib.pyplot as plt 
-
-from MergeModule                       import MergeModule
-from FileLoader                        import FileLoader
-from tkinter                           import ttk 
-from tkinter                           import filedialog as fd 
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from MergeModule import MergeModule
 
 class DataTransformationModule(MergeModule):
     def __init__(self, *args, **kwargs):
@@ -70,5 +59,6 @@ class DataTransformationModule(MergeModule):
             self.filter_value_text_box.delete("1.0", "end")
 
     def create_data_transformation_module(self):
+        self.filter_value_text_box = self.create_text_bar(1, 0, 0, 0.25, 0.33, 106, state = "normal")
         self.create_label("3. Data Transformation", 0.05, 0.29)
         self.create_button("Apply Transformation", self.apply_transformation, 0.05, 0.37, button_width = 57)
