@@ -1,15 +1,7 @@
 import json
 
-import tkinter           as tk 
-import pandas            as pd 
-import seaborn           as sns
-import matplotlib.pyplot as plt 
-
-from VariableRenameModule              import VariableRenameModule
-from FileLoader                        import FileLoader
-from tkinter                           import ttk 
-from tkinter                           import filedialog as fd 
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from VariableRenameModule import VariableRenameModule
+from tkinter              import filedialog as fd 
 
 class SaveDataModule(VariableRenameModule):
     def __init__(self, *args, **kwargs):
@@ -40,5 +32,6 @@ class SaveDataModule(VariableRenameModule):
             
     def create_save_file_module(self):
         self.final_variable_selection = self.create_text_bar(1, 0, 0, 0.05, 0.65, 408, state = "normal")
+        self.text_bar_list.append(self.final_variable_selection)
         self.create_label("5. Enter variables to save (separate with commas)", 0.05, 0.61)
         self.create_button("Save Dataset", self.save_file, 0.05, 0.69, button_width = 57)
