@@ -1,14 +1,6 @@
-import json
+import pandas as pd 
 
-import tkinter           as tk 
-import pandas            as pd 
-import seaborn           as sns
-import matplotlib.pyplot as plt 
-
-from FileLoader                        import FileLoader
-from tkinter                           import ttk 
-from tkinter                           import filedialog as fd 
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from FileLoader import FileLoader
 
 class MergeModule(FileLoader):
     def __init__(self, *args, **kwargs):
@@ -31,9 +23,9 @@ class MergeModule(FileLoader):
         try: 
             self.merged_data = pd.merge(self.data_dictionary["Data_01"], self.data_dictionary["Data_02"], how = self.combobox_dict["join_type"], left_on = self.combobox_dict["left_join_variable"], right_on = self.combobox_dict["right_join_variable"])
             
-            self.merged_data["Date"] = self.merged_data["Date"].fillna("0")
-            self.merged_data["Date"] = self.merged_data.apply(lambda x: parse_date(x["Date"]), axis = 1)
-            self.merged_data["In-Use ERP Total"] = self.merged_data["In-Use ERP Total"].str.replace(".", "").astype(float) / 1000
+            self.merged_data["Date"]             = self.merged_data["Date"].fillna("0")
+            self.merged_data["Date"]             = self.merged_data.apply(lambda x: parse_date(x["Date"]), axis = 1)
+            self.merged_data["In-Use ERP Total"] = self.merged_data["In-Use ERP Total"].str.replace(".", "").str.replace(",", "").astype(float) / 1000
 
             self.select_filter_variable["values"]     = ["Select a variable"] + list(self.merged_data.columns)
             self.select_filter_operation["values"]    = ["Select an operation"] + ["Greater than or equal", "Greater than", "Lesser than or equal", "Lesser than", "Equals", "Does not equal", "Contains", "Does not contain", "Drop null values"]
@@ -52,4 +44,7 @@ class MergeModule(FileLoader):
 
         self.select_filter_variable     = self.create_combobox(0.05, 0.33, "filter_variable")
         self.select_filter_operation    = self.create_combobox(0.15, 0.33, "filter_operation")
-        self.select_numerical_variables = self.create_combobox(0.05, 0.93, "descriptive_stats_box")
+        self.select_numerical_variables = self.create_combobox(0.05, 0.83, "descriptive_stats_box")
+
+        for text_box in [self.select_filter_variable, self.select_filter_operation, self.select_numerical_variables]:
+            self.combobox_list.append(text_box)
