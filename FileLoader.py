@@ -1,14 +1,9 @@
 import json
 
-import tkinter           as tk 
-import pandas            as pd 
-import seaborn           as sns
-import matplotlib.pyplot as plt 
+import pandas as pd 
 
-from BasicMethods                      import BasicMethods
-from tkinter                           import ttk 
-from tkinter                           import filedialog as fd 
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from BasicMethods import BasicMethods
+from tkinter      import filedialog as fd 
 
 class FileLoader(BasicMethods):
     def __init__(self, *args, **kwargs):
@@ -55,7 +50,9 @@ class FileLoader(BasicMethods):
                 self.filename_bar.delete("1.0", "end")
 
     def create_loader(self):
+        self.status_label = self.create_label(" ", 0.15, 0.05)
         self.filename_bar = self.create_text_bar(1, 0, 0, 0.05, 0.097, state = "normal")
+        self.text_bar_list.append(self.filename_bar)
         self.create_label("1. Load csv file", 0.05, 0.05)
         self.create_button("Load File 1", self.load_file, 0.46, 0.09, 1)
         self.create_button("Load File 2", self.load_file, 0.54, 0.09, 2)
@@ -63,3 +60,6 @@ class FileLoader(BasicMethods):
         self.join_type_box    = self.create_combobox(0.05, 0.19, "join_type")
         self.left_column_box  = self.create_combobox(0.15, 0.19, "left_join_variable")
         self.right_column_box = self.create_combobox(0.25, 0.19, "right_join_variable")
+
+        for text_box in [self.join_type_box, self.left_column_box, self.right_column_box]:
+            self.combobox_list.append(text_box)
