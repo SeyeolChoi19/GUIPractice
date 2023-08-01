@@ -1,13 +1,6 @@
-import json
+import tkinter as tk 
 
-import tkinter           as tk 
-import pandas            as pd 
-import seaborn           as sns 
-import matplotlib.pyplot as plt 
-
-from tkinter                           import ttk 
-from tkinter                           import filedialog as fd 
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from tkinter import ttk 
 
 class BasicMethods:
     def __init__(self, window_message: str, font_type: str = "Calibri"):
@@ -23,11 +16,13 @@ class BasicMethods:
         self.font_size         = font_size 
         self.data_dictionary   = {}
         self.combobox_dict     = {}
+        self.text_bar_list     = []
+        self.combobox_list     = []
 
         self.window = tk.Tk()
         self.window.title(self.window_message)
         self.window.geometry(self.window_geometry)
-        self.window_resizable(0, 0)
+        self.window.resizable(0, 0)
 
     def create_label(self, label_text: str, relative_x: float, relative_y: float) -> tk.Label:
         label_object = tk.Label(text = label_text, font = (self.font_type, self.font_size, "bold"))
@@ -65,6 +60,6 @@ class BasicMethods:
         vars_combobox["state"]  = "readonly"
         vars_combobox.current(0)
         vars_combobox.place(relx = relative_x, rely = relative_y)
-        vars_combobox.bind("<<ComboboxSelected", combobox_trigger)
+        vars_combobox.bind("<<ComboboxSelected>>", combobox_trigger)
 
         return vars_combobox
