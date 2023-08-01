@@ -1,15 +1,4 @@
-import json
-
-import tkinter           as tk 
-import pandas            as pd 
-import seaborn           as sns
-import matplotlib.pyplot as plt 
-
-from DataTransformationModule          import DataTransformationModule
-from FileLoader                        import FileLoader
-from tkinter                           import ttk 
-from tkinter                           import filedialog as fd 
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from DataTransformationModule import DataTransformationModule
 
 class VariableRenameModule(DataTransformationModule):
     def __init__(self, *args, **kwargs):
@@ -20,7 +9,7 @@ class VariableRenameModule(DataTransformationModule):
         self.create_data_transformation_module()
 
     def rename_variable(self, event):
-        if (self.original_name_text_box.get("1.0", "end").strip(0) not in self.merged_data.columns):
+        if (self.original_name_text_box.get("1.0", "end").strip() not in self.merged_data.columns):
             self.status_label.config(text = "Variable name error detected", fg = "red")
             raise KeyError
         else:
@@ -30,11 +19,12 @@ class VariableRenameModule(DataTransformationModule):
             self.status_label.config(text = "Variable renamed", fg = "blue")
     
     def create_data_renaming_module(self):
-        self.original_name_text_box     = self.create_text_bar(1, 0, 0, 0.15, 0.47, 252, state = "normal")
-        self.changed_name_text_box      = self.create_text_bar(1, 0, 0, 0.15, 0.51, 252, state = "normal")
-        self.select_numerical_variables = self.create_combobox(0.05, 0.83, "descriptive_stats_box")
-
+        self.original_name_text_box = self.create_text_bar(1, 0, 0, 0.15, 0.47, 252, state = "normal")
+        self.changed_name_text_box  = self.create_text_bar(1, 0, 0, 0.15, 0.51, 252, state = "normal")
         self.create_label("4. Rename Variables", 0.05, 0.43)
         self.create_label("Variable Name", 0.05, 0.47)
         self.create_label("New Name", 0.05, 0.51)
-        self.create_button("Rename Variable", 0.05, 0.55, button_width = 57)
+        self.create_button("Rename Variable", self.rename_variable, 0.05, 0.55, button_width = 57)
+
+        for text_box in [self.original_name_text_box, self.changed_name_text_box]:
+            self.text_bar_list.append(text_box)
