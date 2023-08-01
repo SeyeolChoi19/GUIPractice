@@ -15,7 +15,7 @@ class DataVisualizationModule(DescriptiveStatsModule):
         self.create_descriptive_stats_module()
 
     def data_preview(self, event, relative_x: float = 0.001, relative_y: float = 0.001):
-        if (len(self.merged_data) > 2):
+        try:
             variables_to_preview      = [i.strip() for i in self.preview_text_box.get("1.0", "end").lower().split(",")]
             preview_dataframe         = self.merged_data.copy()
             preview_dataframe.columns = [i.lower().strip() for i in preview_dataframe.columns]
@@ -39,8 +39,12 @@ class DataVisualizationModule(DescriptiveStatsModule):
             plt.close()
             self.preview_text_box.delete("1.0", "end")
             self.status_label.config(text = "Data preview generated", fg = "blue")
-        else:
-            self.status_label.config(text = "Empty dataframe detected, please reload the data", fg = "red")
+        except ValueError:
+            self.status_label.config(text = "Empty dataframe detected, please reload the data or check if variables were entered correctly", fg = "red")
+        except KeyError:
+            self.status_label.config(text = "Variable not found, please check if variable names were entered correctly", fg = "red")
+        except AttributeError:
+            self.status_label.config(text = "Data not found, please reload data", fg = "red")
 
     def correlation_chart(self, event, relative_x: float = 0.001, relative_y: float = 0.001):
         def prepare_data():
@@ -74,10 +78,12 @@ class DataVisualizationModule(DescriptiveStatsModule):
             input_data = prepare_data()
             create_heatmap_chart(input_data)
             self.status_label.config(text = "Correlation heatmap generated", fg = "blue")
+        except ValueError:
+            self.status_label.config(text = "Empty dataframe detected, please reload the data or check if variables were entered correctly", fg = "red")
         except KeyError:
             self.status_label.config(text = "Variable not found, please check if variable names were entered correctly", fg = "red")
         except AttributeError:
-            self.status_label.config(text = "Data not found, please check if data was loaded correctly", fg = "red")
+            self.status_label.config(text = "Data not found, please reload data", fg = "red")
 
     def create_data_visualization_module(self):
         self.preview_text_box = self.create_text_bar(1, 0, 0, 0.35, 0.194, 600, state = "normal")
