@@ -28,7 +28,6 @@ class LotteryGUI(BasicMethods):
         def generate_random_name(status_window):
             random_name = random.choice(self.company_names_list)
             self.company_names_list.remove(random_name)
-            print(len(self.company_names_list))
             status_window.delete("1.0", "end")
             status_window.insert("1.0", f"\n{random_name[0]} {random_name[1]}")
             status_window.tag_add("tag_name", "1.0", "end")
