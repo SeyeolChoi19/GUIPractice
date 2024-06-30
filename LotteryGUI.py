@@ -65,6 +65,6 @@ class LotteryGUI(BasicMethods):
 if (__name__ == "__main__"):
     lottery_object = LotteryGUI("경품 추첨", "Calibri")
     lottery_object.settings_method({"csv" : "csv"},  1500, 770, 20)
-    lottery_object.lottery_gui_settings_method("C:/Users/User/Downloads/065391_drumrollwav-88344.mp3", r"C:\Users\User\scrapDirectory\2024-05-23_에니어그램 결과.xlsx")
+    lottery_object.lottery_gui_settings_method()
     lottery_object.random_name_generator()
     lottery_object.window.mainloop()
